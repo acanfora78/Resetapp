@@ -1,0 +1,206 @@
+/**
+ * Tutti i testi dell'interfaccia, in italiano.
+ * Per aggiungere l'inglese in futuro basterà creare en.ts con la stessa struttura.
+ */
+import type { PlanItemKey, ShiftCode } from '@/plan/types';
+
+export const it = {
+  common: {
+    continue: 'Continua',
+    save: 'Salva',
+    cancel: 'Annulla',
+    done: 'Fatto',
+    back: 'Indietro',
+    skip: 'Salta',
+    error: 'Qualcosa è andato storto',
+    retry: 'Riprova',
+    loading: 'Caricamento…',
+    step: (n: number, total: number) => `Passo ${n} di ${total}`,
+    minutes: (n: number) => `${n} min`,
+  },
+
+  shifts: {
+    names: {
+      M: 'Mattina',
+      P: 'Pomeriggio',
+      N: 'Notte',
+      S: 'Smonto',
+      R: 'Riposo',
+    } satisfies Record<ShiftCode, string>,
+    noShift: 'Nessun turno',
+  },
+
+  welcome: {
+    title: 'Dormi meglio.\nAnche su turni.',
+    promise: 'Ogni giorno Reset ti dice cosa fare in base al tuo turno: quando dormire, quando fare pausa, quando staccare dalla caffeina.',
+    start: 'Inizia',
+    haveAccount: 'Ho già un account',
+  },
+
+  auth: {
+    registerTitle: 'Crea il tuo account',
+    registerSubtitle: 'Così i tuoi turni e i tuoi dati restano salvati, anche se cambi telefono.',
+    loginTitle: 'Bentornato',
+    loginSubtitle: 'Accedi per ritrovare turni e piano.',
+    email: 'Email',
+    password: 'Password',
+    passwordHint: 'Almeno 8 caratteri',
+    register: 'Registrati',
+    login: 'Accedi',
+    or: 'oppure',
+    apple: 'Continua con Apple',
+    google: 'Continua con Google',
+    goToLogin: 'Hai già un account? Accedi',
+    goToRegister: 'Non hai un account? Registrati',
+    checkEmailTitle: 'Controlla la tua email',
+    checkEmailBody: 'Ti abbiamo mandato un link per confermare l’indirizzo. Dopo averlo aperto, torna qui e accedi.',
+    errors: {
+      invalidEmail: 'Inserisci un’email valida.',
+      shortPassword: 'La password deve avere almeno 8 caratteri.',
+      invalidCredentials: 'Email o password non corretti.',
+      emailNotConfirmed: 'Devi prima confermare l’email. Controlla la posta.',
+      userExists: 'Esiste già un account con questa email. Prova ad accedere.',
+      googleNotConfigured: 'L’accesso con Google non è ancora configurato.',
+      appleUnavailable: 'Accedi con Apple non è disponibile su questo dispositivo.',
+      generic: 'Accesso non riuscito. Riprova tra poco.',
+    },
+  },
+
+  onboarding: {
+    totalSteps: 9,
+    consent: {
+      title: 'I tuoi dati, le tue regole',
+      body: 'Reset usa i dati sul tuo sonno e sui tuoi turni solo per costruire il tuo piano. Non li vendiamo e non li condividiamo. Puoi revocare il consenso quando vuoi dal Profilo.',
+      sleepData: 'Acconsento al trattamento dei miei dati sul sonno e sull’energia, per ricevere il piano personalizzato.',
+      terms: 'Ho letto e accetto i Termini di servizio e l’Informativa privacy.',
+      termsLink: 'Termini di servizio',
+      privacyLink: 'Informativa privacy',
+      disclaimer: 'Reset offre contenuti educativi su abitudini e organizzazione. Non è un dispositivo medico e non sostituisce il parere di un medico.',
+    },
+    job: {
+      title: 'Che lavoro fai?',
+      subtitle: 'Ci serve per darti consigli più adatti.',
+      nameLabel: 'Come ti chiami? (facoltativo)',
+      namePlaceholder: 'Il tuo nome',
+      options: [
+        'Sanità',
+        'Industria e produzione',
+        'Logistica e magazzino',
+        'Sicurezza e vigilanza',
+        'Trasporti',
+        'Forze dell’ordine',
+        'Vigili del fuoco e soccorso',
+        'Ristorazione e hotel',
+      ],
+      other: 'Altro',
+      otherPlaceholder: 'Scrivi il tuo lavoro',
+    },
+    hours: {
+      title: 'Orari dei tuoi turni',
+      subtitle: 'Tocca un orario per cambiarlo.',
+      start: 'Inizio',
+      end: 'Fine',
+    },
+    pattern: {
+      title: 'Il tuo schema di turni',
+      subtitle: 'Imposta la sequenza che si ripete e il giorno da cui parte. Reset compila il calendario dei prossimi mesi.',
+      presets: 'Schemi comuni',
+      sequence: 'Sequenza',
+      sequenceEmpty: 'Tocca i turni qui sotto per comporre la sequenza.',
+      add: 'Aggiungi',
+      removeLast: 'Togli l’ultimo',
+      clear: 'Svuota',
+      startDate: 'Il primo turno della sequenza è il',
+      skip: 'Salta, inserisco i turni a mano',
+      tooShort: 'Aggiungi almeno un turno alla sequenza.',
+    },
+    habits: {
+      title: 'Giorni liberi e tragitto',
+      wake: 'Nei giorni liberi ti svegli alle',
+      commute: 'Minuti di tragitto casa-lavoro',
+      commuteHint: 'Solo andata',
+    },
+    preview: {
+      title: 'Il tuo piano di domani',
+      subtitle: (shiftName: string) => `Domani: ${shiftName}`,
+      noShift: 'Domani non hai turni inseriti: ecco il piano di un giorno libero.',
+      tonight: 'Stasera',
+      tomorrow: 'Domani',
+      note: 'Il piano si aggiorna da solo quando cambi turni o orari.',
+    },
+    paywall: {
+      title: 'Abbonamento',
+      placeholder: 'Qui arriverà la scelta dell’abbonamento (mensile 4,99 € o annuale 44,99 €).',
+    },
+  },
+
+  tabs: {
+    today: 'Oggi',
+    calendar: 'Calendario',
+    diary: 'Diario',
+    guides: 'Guide',
+    profile: 'Profilo',
+  },
+
+  placeholder: {
+    comingSoon: 'In arrivo nei prossimi aggiornamenti.',
+  },
+
+  calendar: {
+    title: 'Calendario',
+    pattern: 'Schema ciclico',
+    manualLegend: 'Modificato a mano',
+    weekdays: ['L', 'M', 'M', 'G', 'V', 'S', 'D'],
+    today: 'Oggi',
+  },
+
+  day: {
+    chooseShift: 'Scegli il turno',
+    restoreFromPattern: 'Ripristina dallo schema',
+    restoreHint: (shiftName: string) => `Lo schema prevede: ${shiftName}`,
+    removeShift: 'Rimuovi turno',
+    manualNote: 'Questo giorno è stato modificato a mano: lo schema non lo cambierà.',
+  },
+
+  patternScreen: {
+    title: 'Schema ciclico',
+    active: (seq: string, date: string) => `Attivo: ${seq} dal ${date}`,
+    none: 'Nessuno schema attivo. I turni si inseriscono a mano.',
+    save: 'Salva e aggiorna il calendario',
+    disable: 'Disattiva lo schema',
+    disableConfirmTitle: 'Disattivare lo schema?',
+    disableConfirmBody: 'I turni automatici da oggi in poi verranno tolti. Quelli modificati a mano restano.',
+    saved: 'Calendario aggiornato.',
+  },
+
+  profile: {
+    signOut: 'Esci',
+    signedInAs: (email: string) => `Accesso come ${email}`,
+  },
+
+  plan: {
+    items: {
+      wake: { title: 'Sveglia', why: 'Un orario fisso aiuta il corpo a prepararsi al turno.' },
+      bedtime: { title: 'A letto', why: 'Così dormi abbastanza prima del prossimo impegno.' },
+      bright_light: { title: 'Luce forte entro 30 minuti', why: 'La luce del mattino dice al corpo che la giornata è iniziata.' },
+      morning_light: { title: 'Luce al mattino', why: 'Esci o apri le finestre: tiene il ritmo regolare.' },
+      low_light: { title: 'Luce bassa e decompressione', why: 'Luci soffuse dopo il turno aiutano a prendere sonno.' },
+      caffeine_stop: { title: 'Stop caffeina', why: 'La caffeina resta in circolo per ore e disturba il sonno.' },
+      nap_short: { title: 'Pisolino di 20 minuti', why: 'Hai dormito poco: un pisolino breve recupera senza intontirti.' },
+      nap_pre_night: { title: 'Pisolino di 90 minuti', why: 'Un ciclo completo di sonno prima della notte ti tiene più lucido.' },
+      night_bright_light: { title: 'Luce forte a inizio turno', why: 'Nella prima metà della notte la luce aiuta a restare sveglio.' },
+      night_caffeine_stop: { title: 'Ultima caffeina', why: 'Dopo metà turno la caffeina rovina il sonno di domani.' },
+      night_light_meal: { title: 'Pasti leggeri stanotte', why: 'Tra mezzanotte e le 6 evita i pasti pesanti.' },
+      dark_glasses: { title: 'Occhiali scuri all’uscita', why: 'Meno luce sulla via di casa, più facile dormire dopo.' },
+      drive_alert: { title: 'Attenzione alla guida', why: 'Dopo la notte i riflessi sono più lenti. Se hai sonno, fermati.' },
+      post_night_routine: { title: 'Routine post-notte', why: 'Doccia tiepida, luce bassa, telefono lontano, stanza buia e fresca.' },
+      day_sleep: { title: 'Sonno pieno', why: 'Stanotte lavori ancora: recupera tutto il sonno che ti serve.' },
+      short_sleep: { title: 'Sonno breve (3–4 ore)', why: 'Poi in piedi, per dormire stanotte. Niente caffeina fino al risveglio.' },
+      natural_light: { title: 'Luce naturale', why: 'Un po’ di luce nel pomeriggio ti riporta sul ritmo del giorno.' },
+      light_activity: { title: 'Attività fisica leggera', why: 'Una camminata o un po’ di movimento aiutano il recupero.' },
+    } satisfies Record<PlanItemKey, { title: string; why: string }>,
+  },
+} as const;
+
+export type Strings = typeof it;
+export default it;

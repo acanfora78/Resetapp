@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "Reset",
+    "slug": "reset",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/brand/reset-icona-AppStore-1024.png",
+    "scheme": "reset",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0B1838",
+    "ios": {
+      "bundleIdentifier": "it.acanfora.reset",
+      "supportsTablet": false,
+      "usesAppleSignIn": true,
+      "icon": "./assets/brand/reset-icona-AppStore-1024.png",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleDevelopmentRegion": "it",
+        "CFBundleLocalizations": [
+          "it"
+        ]
+      }
+    },
+    "android": {
+      "package": "it.acanfora.reset",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/brand/reset-simbolo-1024.png",
+        "backgroundColor": "#0B1838"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-web-browser",
+      "expo-image",
+      "expo-apple-authentication",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0B1838",
+          "image": "./assets/brand/reset-simbolo-1024.png",
+          "imageWidth": 180
+        }
+      ],
+      "@react-native-community/datetimepicker"
+    ]
+  }
+}
