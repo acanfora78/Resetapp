@@ -1,0 +1,204 @@
+# Reset — Specifica dell'app
+
+Documento di riferimento per lo sviluppo. Leggilo per intero prima di scrivere codice e rispettalo. Se qualcosa non è chiaro o va in conflitto con un requisito tecnico, chiedi prima di decidere.
+
+---
+
+## 1. Visione
+
+Reset aiuta chi lavora su turni a rotazione con le notti a dormire abbastanza e recuperare energia, senza cambiare lavoro.
+**Promessa:** ogni giorno l'app ti dice cosa fare in base al tuo turno.
+
+| Decisione | Scelta |
+|---|---|
+| Target | Turnisti 25–50 anni: sanità, industria, logistica, sicurezza, trasporti, forze dell'ordine |
+| Piattaforme | iOS (App Store) e Android (Google Play) |
+| Lingua | Solo italiano (testi centralizzati in un file, per poter aggiungere l'inglese in futuro) |
+| Account | Obbligatorio, dati salvati online |
+| Modello | Abbonamento senza prova: 4,99 €/mese o 44,99 €/anno |
+| Posizionamento | Educativo su abitudini e organizzazione, **non medico** |
+| Tono dei testi | Diretto, empatico, da collega. Frasi brevi. Niente toni motivazionali da guru, niente gergo medico |
+
+---
+
+## 2. Brand
+
+- Nome: **Reset**
+- Colori:
+  - Blu notte (sfondo principale): `#0B1838`
+  - Arancio sfumato (accento): da `#FFB43A` a `#FF9318`
+  - Testo chiaro: `#FFFFFF`, testo secondario: bianco al 60–70% di opacità
+- Font: **Poppins** (Bold per i titoli, Regular/Medium per il testo)
+- Tema: scuro di default. L'app viene usata soprattutto di notte o appena svegli.
+- Logo e icone: nella cartella `assets/brand/` (SVG e PNG). Icona app: `reset-icona-AppStore-1024.png`.
+
+---
+
+## 3. Funzioni (prima versione)
+
+### Base
+1. **Calendario turni:** turni per giorno: Mattina (M), Pomeriggio (P), Notte (N), Smonto (S), Riposo (R).
+2. **Turni ciclici automatici:** l'utente imposta il suo schema una volta (es. M-P-N-S-R) e una data di partenza. L'app genera i turni dei mesi successivi. Ogni giorno resta modificabile a mano, e la modifica manuale non viene sovrascritta dallo schema.
+3. **Piano automatico:** per ogni giorno, le azioni con orario (vedi sezione 4).
+4. **Diario del sonno:** ora a letto, ora di sveglia, energia da 1 a 5, nota facoltativa. Deve richiedere al massimo 10 secondi.
+5. **Notifiche:** promemoria delle azioni del piano.
+6. **Statistiche:** grafico settimanale di ore dormite ed energia.
+
+### Recupero
+7. **Routine post-notte guidata:** checklist di decompressione (doccia tiepida, luce bassa, telefono lontano, stanza buia e fresca) più un audio di rilassamento di circa 5–10 minuti.
+8. **Timer pisolino strategico:** scegli 20 minuti (pisolino breve) o 90 minuti (ciclo completo), con sveglia.
+9. **Guida pasti in turno:** cosa e quando mangiare per ogni tipo di turno (contenuto testuale).
+10. **Allerta guida dopo la notte:** notifica a fine turno di notte con consigli di sicurezza prima di guidare.
+
+### Organizzazione
+11. **Modalità notte:** interfaccia più scura e poco luminosa, attivata in automatico durante i turni di notte o a mano.
+12. **Widget per la schermata home:** mostra la prossima azione del piano. **Rimandato all'aggiornamento dopo il lancio.**
+
+### Contenuti e motivazione
+13. **Libreria di mini-guide:** brevi lezioni su sonno, luce, caffeina e turni.
+14. **Report mensile PDF:** riepilogo di sonno, energia e punteggi del mese, da esportare e condividere.
+15. **Obiettivi e serie:** giorni consecutivi di piano rispettato.
+16. **Punteggio recupero giornaliero:** numero da 0 a 100.
+
+---
+
+## 4. Logica del piano automatico
+
+Il piano si calcola **sul dispositivo** a partire da:
+- orari dei turni dell'utente;
+- turno del giorno e turno del giorno dopo;
+- minuti di tragitto casa-lavoro;
+- orario di sveglia preferito nei giorni liberi;
+- fabbisogno di sonno (default 7,5 ore, modificabile).
+
+Il piano non si salva sul server. Si salvano solo le azioni completate (tabella `plan_checks`).
+
+Tutti gli orari sono configurabili come costanti in un unico file (es. `src/plan/rules.ts`), così le regole si possono correggere dopo la validazione di un esperto senza toccare il resto del codice.
+
+Definizioni:
+- `partenza = inizio_turno − tragitto − 30 min` (preparazione)
+- `rientro = fine_turno + tragitto`
+- `fabbisogno = 7,5 h` (default)
+
+| Turno | Azioni e orari |
+|---|---|
+| **Mattina (M)** | Sveglia = `partenza − 30 min`. A letto (la sera prima) = `sveglia − fabbisogno − 15 min`. Luce forte entro 30 min dalla sveglia. Stop caffeina = `ora a letto − 8 h`. Se il sonno registrato la notte prima è sotto le 6 ore: pisolino di 20 min nel primo pomeriggio. |
+| **Pomeriggio (P)** | A letto = `rientro + 60 min` (routine di decompressione). Sveglia = `a letto + fabbisogno`. Stop caffeina = `a letto − 8 h`. Luce bassa dal rientro. |
+| **Notte (N)** | Pisolino di 90 min che finisce 60 min prima della `partenza`. Caffeina permessa solo fino a metà turno. Luce forte nella prima metà del turno. Occhiali scuri all'uscita dal lavoro. Pasto leggero: evitare pasti pesanti tra mezzanotte e le 6. Allerta guida alla fine del turno. Dopo il rientro: routine post-notte, poi sonno. **Se il giorno dopo è di nuovo N:** sonno pieno (`fabbisogno`). **Altrimenti:** vedi Smonto. |
+| **Smonto (S)** | Sonno breve dopo il rientro (3–4 h), poi in piedi. Niente caffeina fino al risveglio. Luce naturale nel pomeriggio. A letto presto la sera (`sveglia_preferita − fabbisogno`), per riallinearsi al giorno. |
+| **Riposo (R)** | Sveglia = `sveglia_preferita`. A letto = `sveglia − fabbisogno`. Luce al mattino. Suggerimento di attività fisica leggera. |
+
+Ogni azione del piano ha:
+- `key` stabile (es. `caffeine_stop`, `nap_pre_night`);
+- orario;
+- titolo breve;
+- spiegazione di una riga ("perché");
+- se va notificata o no.
+
+### Punteggio recupero (0–100)
+- 50%: ore dormite rispetto al fabbisogno (al massimo 100%)
+- 30%: energia dichiarata (1 = 0 punti, 5 = massimo)
+- 20%: percentuale di azioni del piano completate
+
+### Serie
+Giorni consecutivi con almeno il 70% delle azioni del piano completate.
+
+---
+
+## 5. Schermate e flusso
+
+### Onboarding
+1. Benvenuto e promessa
+2. Registrazione: email + password, Accedi con Apple, Accedi con Google
+3. Consenso esplicito al trattamento dei dati sul sonno (GDPR) e accettazione di Termini e Privacy
+4. Che lavoro fai (scelta da elenco + "Altro")
+5. Orari dei turni: inizio e fine di M, P, N, con valori di partenza (es. 6–14, 14–22, 22–6) modificabili
+6. Schema ciclico e data di inizio (possibilità di saltare e inserire i turni a mano)
+7. Orario di sveglia nei giorni liberi e minuti di tragitto
+8. **Anteprima del piano di domani**
+9. **Paywall:** mensile 4,99 € / annuale 44,99 €
+
+L'app non è utilizzabile senza un abbonamento attivo.
+
+### Barra in basso (5 sezioni)
+| Sezione | Contenuto |
+|---|---|
+| **Oggi** | Turno del giorno, punteggio di recupero, prossime azioni con spunta, pulsanti rapidi (pisolino, routine post-notte) |
+| **Calendario** | Vista mensile dei turni, tocca un giorno per modificarlo, gestione dello schema ciclico |
+| **Diario** | Inserimento rapido del sonno, grafico settimanale, serie |
+| **Guide** | Mini-guide, guida ai pasti in turno |
+| **Profilo** | Orari e tragitto, notifiche, modalità notte, report PDF, gestione abbonamento, Ripristina acquisti, Termini, Privacy, disclaimer, **Elimina account** |
+
+---
+
+## 6. Dati (Supabase / Postgres)
+
+Ogni tabella ha `user_id` collegato a `auth.users`, con **Row Level Security attiva**: ogni utente vede e modifica solo le sue righe.
+
+| Tabella | Campi principali |
+|---|---|
+| `profiles` | `id` (= user id), `nome`, `lavoro`, `sveglia_preferita` (time), `tragitto_min` (int), `fabbisogno_sonno_min` (int, default 450), `consenso_dati_at` (timestamp), `notifiche` (jsonb), `created_at` |
+| `shift_types` | `id`, `user_id`, `codice` (M/P/N/S/R), `nome`, `inizio` (time), `fine` (time) |
+| `shift_patterns` | `id`, `user_id`, `sequenza` (text[] es. {M,P,N,S,R}), `data_inizio` (date), `attivo` (bool) |
+| `shifts` | `id`, `user_id`, `data` (date, unico per utente), `codice`, `manuale` (bool) |
+| `sleep_logs` | `id`, `user_id`, `data` (date), `a_letto` (timestamptz), `sveglia` (timestamptz), `minuti_dormiti` (int), `energia` (1–5), `note` |
+| `plan_checks` | `id`, `user_id`, `data` (date), `item_key` (text), `fatto_at` (timestamptz) |
+| `daily_scores` | `id`, `user_id`, `data` (date), `punteggio` (0–100) |
+| `subscriptions` | `user_id`, `piattaforma` (ios/android), `prodotto` (mensile/annuale), `stato` (attivo/scaduto/annullato/rimborsato), `scadenza` (timestamptz), `transaction_id_originale`, `aggiornato_at` |
+
+- Le mini-guide e la guida ai pasti sono contenuti statici dentro l'app (file TypeScript o JSON).
+- Le migrazioni SQL stanno in `supabase/migrations/`.
+
+---
+
+## 7. Tecnologia
+
+| Cosa | Strumento |
+|---|---|
+| App | Expo (ultima versione SDK stabile), React Native, TypeScript, Expo Router |
+| Backend | Supabase: Auth (email, Apple, Google), Postgres, Edge Functions |
+| Abbonamenti | `react-native-iap` (StoreKit 2 / Google Play Billing). **Niente RevenueCat né altri servizi a pagamento.** |
+| Verifica acquisti | Edge Function Supabase che verifica le ricevute (App Store Server API, Google Play Developer API) e riceve le notifiche server-to-server (App Store Server Notifications V2, Google Real-time Developer Notifications), aggiornando `subscriptions` |
+| Notifiche | `expo-notifications`, notifiche locali programmate per i 7 giorni successivi e riprogrammate a ogni modifica di turni o impostazioni |
+| Audio | `expo-audio` |
+| PDF | `expo-print` + `expo-sharing` |
+| Grafici | Libreria leggera compatibile con Expo (es. `react-native-svg` + componenti propri, oppure `victory-native`) |
+| Date | `date-fns` con fuso orario del dispositivo |
+| Build e pubblicazione | EAS Build ed EAS Submit (in cloud) |
+| Test | TestFlight su iPhone. Android su Chromebook o emulatore |
+
+### Ambiente di lavoro
+Lo sviluppatore usa un **Chromebook** e un **iPhone 17 Pro**, con Claude Code nel browser. Non c'è un Mac. Tutto passa da GitHub, EAS Build in cloud e TestFlight. Funzioni come Accedi con Apple e gli acquisti in-app richiedono una **development build** (non funzionano in Expo Go).
+
+### Convenzioni
+- Struttura: `app/` (route Expo Router), `src/components`, `src/plan` (logica del piano, pura e testata), `src/lib` (supabase, iap, notifiche), `src/content` (guide e testi), `src/i18n/it.ts` (tutti i testi).
+- La logica del piano e il punteggio sono funzioni pure con test unitari (Jest).
+- Chiavi e segreti mai nel codice: si usano variabili d'ambiente (`EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`) e i segreti EAS e Supabase.
+
+---
+
+## 8. Requisiti store e legali
+
+- [ ] Eliminazione dell'account dentro l'app (obbligo Apple) e tramite pagina web (obbligo Google). Cancella tutti i dati dell'utente.
+- [ ] Accedi con Apple disponibile, dato che c'è anche Google.
+- [ ] Paywall con prezzo, durata, rinnovo automatico, come disdire, link a Termini e Privacy, pulsante "Ripristina acquisti".
+- [ ] Privacy policy e Termini di servizio pubblicati online.
+- [ ] Dati sul sonno trattati come dati sensibili (GDPR): consenso esplicito all'onboarding e revocabile.
+- [ ] Disclaimer visibile: contenuti educativi, non sostituiscono il parere medico. Nessun consiglio su farmaci, melatonina o integratori.
+- [ ] Etichette privacy su App Store e modulo "Sicurezza dei dati" su Play Console.
+- [ ] Regole del piano validate da un esperto prima del lancio.
+
+---
+
+## 9. Fasi di sviluppo
+
+Ogni fase termina con una build provata su iPhone tramite TestFlight.
+
+1. **Preparazione:** account pronti (GitHub, Expo, Supabase). App da creare su App Store Connect e Play Console.
+2. **Fondamenta:** progetto Expo, tema e brand, Supabase con migrazioni e RLS, login (email, Apple, Google), onboarding (senza paywall), turni e turni ciclici, calendario, struttura delle 5 sezioni.
+3. **Cuore:** piano automatico (con test), schermata Oggi, spunte azioni, notifiche, modalità notte.
+4. **Monitoraggio:** diario del sonno, statistiche, punteggio di recupero, serie.
+5. **Recupero:** routine post-notte con audio, timer pisolino, guida pasti, allerta guida, libreria mini-guide.
+6. **Pagamenti:** prodotti in abbonamento sugli store, `react-native-iap`, Edge Functions di verifica, paywall, blocco dei contenuti, report PDF, eliminazione account.
+7. **Beta:** 10–20 turnisti reali la provano per 2 settimane; si correggono i problemi.
+8. **Pubblicazione** su App Store e Play Store. Poi aggiornamento con il widget per la schermata home.
