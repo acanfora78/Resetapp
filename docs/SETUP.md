@@ -67,7 +67,7 @@ git add app.json && git commit -m "Collega progetto EAS" && git push
 ## 3. Expo: variabili d'ambiente per le build in cloud
 
 ```bash
-npx eas-cli env:create --name EXPO_PUBLIC_SUPABASE_URL --value https://dnmzjapuxfvwpdbeyzhk.supabase.co --environment production --environment preview --environment development --visibility plaintext
+npx eas-cli env:create --name EXPO_PUBLIC_SUPABASE_URL --value https://tkskfgdocyhnspropafh.supabase.co --environment production --environment preview --environment development --visibility plaintext
 ```
 
 ```bash
@@ -100,7 +100,7 @@ Per le build successive basta rilanciare il comando del punto 2: il numero di bu
 ## 5. Google (quando sei pronto)
 
 1. **Google Cloud Console**: crea i client OAuth iOS (bundle `it.acanfora.reset`) e Web, seguendo le istruzioni che ti ho già dato.
-   - Nel client Web metti come URI di reindirizzamento `https://dnmzjapuxfvwpdbeyzhk.supabase.co/auth/v1/callback`.
+   - Nel client Web metti come URI di reindirizzamento `https://tkskfgdocyhnspropafh.supabase.co/auth/v1/callback`.
 2. **Supabase → Authentication → Sign In / Providers → Google** → attiva:
    - **Client IDs**: l'ID client Web e l'ID client iOS, separati da virgola, prima quello Web.
    - **Client Secret**: il secret del client Web.
