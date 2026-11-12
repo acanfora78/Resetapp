@@ -29,6 +29,24 @@ nvm install 22
 ```
 
 ```bash
+sudo apt update && sudo apt install -y git gh
+```
+
+```bash
+gh auth login
+```
+
+Rispondi: GitHub.com → HTTPS → Yes → Login with a web browser. Poi presentati a git (nome e email che compariranno nei commit):
+
+```bash
+git config --global user.name "Il tuo nome"
+```
+
+```bash
+git config --global user.email "la-tua-email@esempio.it"
+```
+
+```bash
 git clone https://github.com/acanfora78/Resetapp.git && cd Resetapp && git checkout claude/adoring-planck-bgo9c5 && npm install
 ```
 
