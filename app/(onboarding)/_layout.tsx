@@ -4,6 +4,8 @@ import { colors } from '@/theme';
 
 export default function OnboardingLayout() {
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }} />
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+      <Stack.Screen name="caricamento" options={{ gestureEnabled: false }} />
+    </Stack>
   );
 }

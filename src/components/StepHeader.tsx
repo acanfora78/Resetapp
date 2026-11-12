@@ -9,18 +9,19 @@ import { AppText } from './AppText';
 
 interface Props {
   step: number;
-  title: string;
+  title?: string;
   subtitle?: string;
-  canGoBack?: boolean;
+  /** false solo per il caricamento (e il benvenuto, che non ha un passo precedente). */
+  showBack?: boolean;
 }
 
 /** Intestazione dei passi dell'onboarding con barra di avanzamento. */
-export function StepHeader({ step, title, subtitle, canGoBack = true }: Props) {
+export function StepHeader({ step, title, subtitle, showBack = true }: Props) {
   const total = it.onboarding.totalSteps;
   return (
     <View style={styles.wrap}>
       <View style={styles.topRow}>
-        {canGoBack && router.canGoBack() ? (
+        {showBack && router.canGoBack() ? (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={it.common.back}
@@ -38,7 +39,7 @@ export function StepHeader({ step, title, subtitle, canGoBack = true }: Props) {
       <View style={styles.track}>
         <View style={[styles.fill, { width: `${(step / total) * 100}%` }]} />
       </View>
-      <AppText variant="title">{title}</AppText>
+      {title ? <AppText variant="title">{title}</AppText> : null}
       {subtitle ? <AppText secondary>{subtitle}</AppText> : null}
     </View>
   );

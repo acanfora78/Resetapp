@@ -1,5 +1,5 @@
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { ReactNode } from 'react';
 import type { Edge } from 'react-native-safe-area-context';
 
@@ -13,7 +13,13 @@ interface Props {
   edges?: Edge[];
 }
 
+/** Altezza del pulsante fisso in basso, usata per lasciare spazio in fondo allo scroll. */
+const FOOTER_BUTTON_HEIGHT = 54;
+
 export function Screen({ children, footer, scroll = true, edges = ['top', 'bottom'] }: Props) {
+  const insets = useSafeAreaInsets();
+  // Con un pulsante fisso in basso, l'ultimo campo deve poter salire sopra di esso.
+  const bottomSpace = footer ? FOOTER_BUTTON_HEIGHT + insets.bottom : 0;
   return (
     <SafeAreaView style={styles.safe} edges={edges}>
       <KeyboardAvoidingView
@@ -22,7 +28,7 @@ export function Screen({ children, footer, scroll = true, edges = ['top', 'botto
       >
         {scroll ? (
           <ScrollView
-            contentContainerStyle={styles.content}
+            contentContainerStyle={[styles.content, { paddingBottom: spacing.lg + bottomSpace }]}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >

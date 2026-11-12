@@ -11,6 +11,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { OnboardingDraftProvider } from '@/lib/onboardingDraft';
 import { SessionProvider, useSession } from '@/lib/session';
 import { colors } from '@/theme';
 
@@ -48,7 +49,8 @@ function RootNavigator() {
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="(auth)" />
       </Stack.Protected>
-      <Stack.Protected guard={signedIn && !loading && !onboarded}>
+      {/* L'onboarding si fa anche senza account: la registrazione è al passo 8. */}
+      <Stack.Protected guard={!onboarded}>
         <Stack.Screen name="(onboarding)" />
       </Stack.Protected>
       <Stack.Protected guard={signedIn && !loading && onboarded}>
@@ -74,8 +76,10 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ThemeProvider value={navTheme}>
         <SessionProvider>
-          <StatusBar style="light" />
-          <RootNavigator />
+          <OnboardingDraftProvider>
+            <StatusBar style="light" />
+            <RootNavigator />
+          </OnboardingDraftProvider>
         </SessionProvider>
       </ThemeProvider>
     </SafeAreaProvider>

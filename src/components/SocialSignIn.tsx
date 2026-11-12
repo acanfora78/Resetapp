@@ -10,8 +10,15 @@ import { colors, radius } from '@/theme';
 import { AppText } from './AppText';
 import { Button } from './Button';
 
+interface Props {
+  /** Pulsanti disattivati (es. consensi non ancora spuntati). */
+  disabled?: boolean;
+  /** Chiamata subito prima di avviare l'accesso. */
+  onBeforeSignIn?: () => void;
+}
+
 /** Pulsanti Accedi con Apple e Accedi con Google. */
-export function SocialSignIn() {
+export function SocialSignIn({ disabled, onBeforeSignIn }: Props) {
   const [appleAvailable, setAppleAvailable] = useState(false);
   const [busy, setBusy] = useState<'apple' | 'google' | null>(null);
 
@@ -21,6 +28,7 @@ export function SocialSignIn() {
 
   const run = async (which: 'apple' | 'google', fn: () => Promise<void>) => {
     setBusy(which);
+    onBeforeSignIn?.();
     try {
       await fn();
     } catch (e) {
@@ -41,6 +49,7 @@ export function SocialSignIn() {
       </View>
 
       {appleAvailable ? (
+        <View style={disabled && styles.disabled} pointerEvents={disabled ? 'none' : 'auto'}>
         <AppleAuthentication.AppleAuthenticationButton
           buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
           buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
@@ -48,13 +57,15 @@ export function SocialSignIn() {
           style={styles.apple}
           onPress={() => run('apple', signInWithApple)}
         />
+        </View>
       ) : null}
 
       <Button
         variant="secondary"
         title={it.auth.google}
         loading={busy === 'google'}
-        icon={<Ionicons name="logo-google" size={20} color={colors.text} />}
+        disabled={disabled}
+        icon={<Ionicons name="logo-google" size={20} color={disabled ? colors.disabledText : colors.text} />}
         onPress={() => run('google', signInWithGoogle)}
       />
     </View>
@@ -66,4 +77,5 @@ const styles = StyleSheet.create({
   dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 4 },
   line: { flex: 1, height: 1, backgroundColor: colors.border },
   apple: { height: 54, width: '100%' },
+  disabled: { opacity: 0.4 },
 });

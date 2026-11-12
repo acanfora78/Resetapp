@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import type { TextInputProps } from 'react-native';
 
@@ -10,7 +11,8 @@ interface Props extends TextInputProps {
   hint?: string;
 }
 
-export function TextField({ label, hint, style, ...rest }: Props) {
+export function TextField({ label, hint, style, onFocus, onBlur, ...rest }: Props) {
+  const [focused, setFocused] = useState(false);
   return (
     <View style={styles.wrap}>
       {label ? <AppText variant="label">{label}</AppText> : null}
@@ -19,7 +21,15 @@ export function TextField({ label, hint, style, ...rest }: Props) {
         selectionColor={colors.accent}
         keyboardAppearance="dark"
         {...rest}
-        style={[styles.input, style]}
+        onFocus={(e) => {
+          setFocused(true);
+          onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setFocused(false);
+          onBlur?.(e);
+        }}
+        style={[styles.input, focused && styles.focused, style]}
       />
       {hint ? <AppText variant="caption">{hint}</AppText> : null}
     </View>
@@ -32,11 +42,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.inputBorder,
     color: colors.text,
     fontFamily: fonts.regular,
     fontSize: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
+  focused: { borderColor: colors.accent },
 });

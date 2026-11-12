@@ -52,7 +52,11 @@ export function PickerField(props: Props) {
       <Pressable
         accessibilityRole="button"
         onPress={onPress}
-        style={({ pressed }) => [styles.field, props.compact && styles.compact, pressed && { opacity: 0.8 }]}
+        style={({ pressed }) => [
+          styles.field,
+          props.compact && styles.compact,
+          (open || pressed) && styles.active,
+        ]}
       >
         <AppText variant="bodyMedium">
           {display}
@@ -94,10 +98,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.inputBorder,
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
+  active: { borderColor: colors.accent },
   compact: { paddingVertical: 10, paddingHorizontal: 14, alignItems: 'center' },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' },
   sheet: {

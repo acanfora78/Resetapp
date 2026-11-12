@@ -1,4 +1,6 @@
-import { Pressable, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors, radius } from '@/theme';
 
@@ -8,32 +10,46 @@ interface Props {
   label: string;
   selected: boolean;
   onPress: () => void;
+  icon?: string;
 }
 
-/** Opzione selezionabile in un elenco. */
-export function OptionButton({ label, selected, onPress }: Props) {
+/** Opzione selezionabile in un elenco, con vibrazione leggera alla selezione. */
+export function OptionButton({ label, selected, onPress, icon }: Props) {
   return (
     <Pressable
       accessibilityRole="radio"
       accessibilityState={{ selected }}
-      onPress={onPress}
+      onPress={() => {
+        Haptics.selectionAsync().catch(() => {});
+        onPress();
+      }}
       style={({ pressed }) => [styles.base, selected && styles.selected, pressed && { opacity: 0.85 }]}
     >
-      <AppText variant="bodyMedium" color={selected ? colors.accent : colors.text}>
+      {icon ? <Text style={styles.icon}>{icon}</Text> : null}
+      <AppText variant="bodyMedium" style={styles.label}>
         {label}
       </AppText>
+      <View style={styles.check}>
+        {selected ? <Ionicons name="checkmark-circle" size={24} color={colors.accent} /> : null}
+      </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   base: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     backgroundColor: colors.surface,
     borderRadius: radius.md,
-    borderWidth: 1.5,
-    borderColor: colors.border,
+    borderWidth: 2,
+    borderColor: colors.surface,
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
-  selected: { borderColor: colors.accent, backgroundColor: colors.surfaceAlt },
+  selected: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
+  icon: { fontSize: 22 },
+  label: { flex: 1 },
+  check: { width: 24, alignItems: 'center' },
 });

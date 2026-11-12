@@ -4,7 +4,10 @@ import { fromISODate, generateShifts, shiftsToWrite, toISODate } from '@/plan/cy
 import type { CyclePattern } from '@/plan/cycle';
 import it from '@/i18n/it';
 import { toClock } from '@/plan/time';
-import type { ShiftCode, ShiftHoursMap } from '@/plan/types';
+import { availableCodes, DEFAULT_HOURS_8H } from '@/plan/shiftSetup';
+import type { EnabledMap } from '@/plan/shiftSetup';
+import { isWorkShift, SHIFT_CODES, WORK_SHIFT_CODES } from '@/plan/types';
+import type { ShiftCode, ShiftHoursMap, WorkShiftCode } from '@/plan/types';
 
 import type { ShiftPatternRow, ShiftRow, ShiftTypeRow } from './database.types';
 import { supabase } from './supabase';
@@ -14,11 +17,7 @@ export const GENERATION_MONTHS_AHEAD = 6;
 /** Quanto si torna indietro al massimo quando lo schema parte nel passato. */
 export const GENERATION_DAYS_BACK = 60;
 
-export const DEFAULT_SHIFT_HOURS: ShiftHoursMap = {
-  M: { start: '06:00', end: '14:00' },
-  P: { start: '14:00', end: '22:00' },
-  N: { start: '22:00', end: '06:00' },
-};
+export const DEFAULT_SHIFT_HOURS: ShiftHoursMap = DEFAULT_HOURS_8H;
 
 // ---------------------------------------------------------------------------
 // Tipi di turno
@@ -31,24 +30,37 @@ export async function fetchShiftTypes(): Promise<ShiftTypeRow[]> {
 }
 
 export function shiftHoursFromTypes(types: ShiftTypeRow[]): ShiftHoursMap {
-  const get = (code: 'M' | 'P' | 'N') => {
+  const get = (code: WorkShiftCode) => {
     const t = types.find((x) => x.codice === code);
     return {
       start: toClock(t?.inizio, DEFAULT_SHIFT_HOURS[code].start),
       end: toClock(t?.fine, DEFAULT_SHIFT_HOURS[code].end),
     };
   };
-  return { M: get('M'), P: get('P'), N: get('N') };
+  return { M: get('M'), P: get('P'), N: get('N'), G: get('G') };
 }
 
-export async function saveShiftTypes(userId: string, hours: ShiftHoursMap) {
-  const rows = (['M', 'P', 'N', 'S', 'R'] as const).map((codice) => ({
-    user_id: userId,
-    codice,
-    nome: it.shifts.names[codice],
-    inizio: codice === 'M' || codice === 'P' || codice === 'N' ? hours[codice].start : null,
-    fine: codice === 'M' || codice === 'P' || codice === 'N' ? hours[codice].end : null,
-  }));
+/** Turni che l'utente fa davvero (attivi), più Smonto e Riposo. */
+export function availableCodesFromTypes(types: ShiftTypeRow[]): ShiftCode[] {
+  if (types.length === 0) return ['M', 'P', 'N', 'S', 'R'];
+  const enabled = Object.fromEntries(
+    WORK_SHIFT_CODES.map((c) => [c, !!types.find((t) => t.codice === c && t.attivo !== false)]),
+  ) as EnabledMap;
+  return availableCodes(enabled);
+}
+
+export async function saveShiftTypes(userId: string, hours: ShiftHoursMap, enabled: EnabledMap) {
+  const rows = SHIFT_CODES.map((codice) => {
+    const work = isWorkShift(codice);
+    return {
+      user_id: userId,
+      codice,
+      nome: it.shifts.names[codice],
+      inizio: work ? hours[codice].start : null,
+      fine: work ? hours[codice].end : null,
+      attivo: work ? enabled[codice] : true,
+    };
+  });
   const { error } = await supabase.from('shift_types').upsert(rows, { onConflict: 'user_id,codice' });
   if (error) throw error;
 }

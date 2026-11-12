@@ -1,8 +1,15 @@
-export const SHIFT_CODES = ['M', 'P', 'N', 'S', 'R'] as const;
+export const SHIFT_CODES = ['M', 'P', 'N', 'G', 'S', 'R'] as const;
 export type ShiftCode = (typeof SHIFT_CODES)[number];
 
-/** Codici dei turni che hanno un orario di lavoro. */
-export type WorkShiftCode = 'M' | 'P' | 'N';
+/** Codici dei turni che hanno un orario di lavoro. G = Giorno (turni da 12 ore). */
+export const WORK_SHIFT_CODES = ['M', 'P', 'N', 'G'] as const;
+export type WorkShiftCode = (typeof WORK_SHIFT_CODES)[number];
+
+export const isWorkShift = (c: ShiftCode | null): c is WorkShiftCode =>
+  c === 'M' || c === 'P' || c === 'N' || c === 'G';
+
+/** Tipo di organizzazione dei turni scelto al passo 3. */
+export type ShiftMode = '8h' | '12h' | 'personalizzati';
 
 /** Orario nel formato "HH:mm". */
 export type ClockTime = string;
@@ -16,17 +23,17 @@ export type ShiftHoursMap = Record<WorkShiftCode, ShiftHours>;
 
 export type PlanItemKey =
   | 'wake'
+  | 'wake_bright_light'
+  | 'wake_morning_light'
   | 'bedtime'
-  | 'bright_light'
-  | 'morning_light'
   | 'low_light'
   | 'caffeine_stop'
   | 'nap_short'
+  | 'shift_break'
   | 'nap_pre_night'
   | 'night_bright_light'
   | 'night_caffeine_stop'
   | 'night_light_meal'
-  | 'dark_glasses'
   | 'drive_alert'
   | 'post_night_routine'
   | 'day_sleep'

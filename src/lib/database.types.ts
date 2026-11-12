@@ -2,7 +2,7 @@
  * Tipi delle tabelle Supabase (scritti a mano, allineati a supabase/migrations).
  * In futuro si possono rigenerare con `supabase gen types typescript`.
  */
-import type { ShiftCode } from '@/plan/types';
+import type { ShiftCode, ShiftMode } from '@/plan/types';
 
 type Table<Row, Insert = Partial<Row>, Update = Partial<Row>> = {
   Row: Row;
@@ -21,6 +21,7 @@ export type ProfileRow = {
   consenso_dati_at: string | null;
   termini_accettati_at: string | null;
   onboarding_completato_at: string | null;
+  tipo_turni: ShiftMode;
   notifiche: Record<string, unknown>;
   created_at: string;
 };
@@ -32,6 +33,7 @@ export type ShiftTypeRow = {
   nome: string;
   inizio: string | null;
   fine: string | null;
+  attivo: boolean;
 };
 
 export type ShiftPatternRow = {
@@ -92,7 +94,7 @@ export type Database = {
   public: {
     Tables: {
       profiles: Table<ProfileRow>;
-      shift_types: Table<ShiftTypeRow, Omit<ShiftTypeRow, 'id'> & { id?: string }>;
+      shift_types: Table<ShiftTypeRow, Omit<ShiftTypeRow, 'id' | 'attivo'> & { id?: string; attivo?: boolean }>;
       shift_patterns: Table<
         ShiftPatternRow,
         Omit<ShiftPatternRow, 'id' | 'created_at' | 'attivo'> & { attivo?: boolean }

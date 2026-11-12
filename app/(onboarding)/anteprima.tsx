@@ -1,79 +1,66 @@
-import { addDays } from 'date-fns';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { useMemo } from 'react';
+import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
-import { PlanList } from '@/components/PlanList';
+import { PlanTimeline } from '@/components/PlanTimeline';
 import { Screen } from '@/components/Screen';
 import { ShiftBadge } from '@/components/ShiftBadge';
 import { StepHeader } from '@/components/StepHeader';
 import it from '@/i18n/it';
-import { useSession } from '@/lib/session';
-import { loadPlanContext, planForDay } from '@/lib/plan';
-import type { PlanContext } from '@/lib/plan';
-import type { PlanItem } from '@/plan/types';
+import { draftPlanContext, useOnboardingDraft } from '@/lib/onboardingDraft';
+import { buildPreview } from '@/plan/context';
+import { isWorkShift } from '@/plan/types';
+import { colors, radius, shiftColors, spacing } from '@/theme';
 
-import { colors, spacing } from '@/theme';
-
-/** Onboarding, passo 8: anteprima del piano di domani. */
+/** Onboarding, passo 7: anteprima del piano di domani, calcolata dai dati appena inseriti. */
 export default function Preview() {
-  const { profile } = useSession();
-  const [ctx, setCtx] = useState<PlanContext | null>(null);
-  const [failed, setFailed] = useState(false);
+  const { draft } = useOnboardingDraft();
+  const preview = useMemo(() => buildPreview(draftPlanContext(draft), new Date()), [draft]);
 
-  useEffect(() => {
-    if (!profile) return;
-    loadPlanContext(profile, new Date())
-      .then(setCtx)
-      .catch(() => setFailed(true));
-  }, [profile]);
-
-  const today = new Date();
-  const tomorrow = addDays(today, 1);
-  let tonight: PlanItem | undefined;
-  let items: PlanItem[] = [];
-  if (ctx) {
-    tonight = planForDay(ctx, today).find((i) => i.key === 'bedtime');
-    items = planForDay(ctx, tomorrow);
-  }
-  const tomorrowShift = ctx?.shiftOn(tomorrow) ?? null;
+  const shift = preview.tomorrowShift;
+  const hours = shift && isWorkShift(shift) ? `${draft.hours[shift].start}–${draft.hours[shift].end}` : null;
+  const name = shift ? it.shifts.names[shift] : it.shifts.freeDay;
 
   return (
-    <Screen footer={<Button title={it.common.continue} onPress={() => router.push('/abbonamento')} />}>
-      <StepHeader step={8} title={it.onboarding.preview.title} />
-      {!ctx && !failed ? <ActivityIndicator color={colors.accent} /> : null}
-      {failed ? <AppText secondary>{it.common.error}</AppText> : null}
-      {ctx ? (
+    <Screen footer={<Button title={it.common.continue} onPress={() => router.push('/salva')} />}>
+      <StepHeader step={7} title={it.onboarding.preview.title} />
+
+      <View style={[styles.header, shift && { borderColor: shiftColors[shift] }]}>
+        {shift ? <ShiftBadge code={shift} size={44} /> : null}
+        <AppText variant="heading" style={{ flex: 1 }}>
+          {it.onboarding.preview.header(name, hours)}
+        </AppText>
+      </View>
+
+      {preview.tonight ? (
         <>
-          <View style={styles.shiftRow}>
-            {tomorrowShift ? <ShiftBadge code={tomorrowShift} size={36} /> : null}
-            <AppText variant="heading" style={{ flex: 1 }}>
-              {tomorrowShift
-                ? it.onboarding.preview.subtitle(it.shifts.names[tomorrowShift])
-                : it.onboarding.preview.noShift}
-            </AppText>
-          </View>
-          {tonight ? (
-            <>
-              <AppText variant="label" secondary>
-                {it.onboarding.preview.tonight}
-              </AppText>
-              <PlanList items={[tonight]} />
-            </>
-          ) : null}
           <AppText variant="label" secondary>
-            {it.onboarding.preview.tomorrow}
+            {it.onboarding.preview.tonight}
           </AppText>
-          <PlanList items={items} />
-          <AppText variant="caption">{it.onboarding.preview.note}</AppText>
+          <PlanTimeline items={[preview.tonight]} />
         </>
       ) : null}
+
+      <AppText variant="label" secondary>
+        {it.onboarding.preview.tomorrow}
+      </AppText>
+      <PlanTimeline items={preview.tomorrow} startIndex={preview.tonight ? 1 : 0} />
+      <AppText variant="caption">{it.onboarding.preview.note}</AppText>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  shiftRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    padding: spacing.md,
+  },
 });

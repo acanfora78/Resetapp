@@ -13,6 +13,7 @@ import { errorText } from '@/lib/errors';
 import type { ShiftPatternRow, ShiftRow } from '@/lib/database.types';
 import { useUserId } from '@/lib/session';
 import {
+  availableCodesFromTypes,
   deleteShift,
   fetchActivePattern,
   fetchShiftTypes,
@@ -24,7 +25,7 @@ import {
 } from '@/lib/shifts';
 import { fromISODate, shiftFromPattern } from '@/plan/cycle';
 import { capitalizeFirst } from '@/plan/time';
-import { SHIFT_CODES } from '@/plan/types';
+import { isWorkShift } from '@/plan/types';
 import type { ShiftCode, ShiftHoursMap } from '@/plan/types';
 import { colors, radius, spacing } from '@/theme';
 
@@ -37,6 +38,7 @@ export default function DayEditor() {
   const [shift, setShift] = useState<ShiftRow | null>(null);
   const [pattern, setPattern] = useState<ShiftPatternRow | null>(null);
   const [hours, setHours] = useState<ShiftHoursMap | null>(null);
+  const [codes, setCodes] = useState<ShiftCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -46,6 +48,7 @@ export default function DayEditor() {
         setShift(rows[0] ?? null);
         setPattern(p);
         setHours(shiftHoursFromTypes(types));
+        setCodes(availableCodesFromTypes(types));
       })
       .catch((e) => Alert.alert(it.common.error, errorText(e)))
       .finally(() => setLoading(false));
@@ -65,7 +68,7 @@ export default function DayEditor() {
   };
 
   const hoursLabel = (c: ShiftCode) =>
-    hours && (c === 'M' || c === 'P' || c === 'N') ? `${hours[c].start}–${hours[c].end}` : '';
+    hours && isWorkShift(c) ? `${hours[c].start}–${hours[c].end}` : '';
 
   return (
     <Screen>
@@ -79,7 +82,7 @@ export default function DayEditor() {
           <AppText variant="label" secondary>
             {it.day.chooseShift}
           </AppText>
-          {SHIFT_CODES.map((c) => {
+          {codes.map((c) => {
             const selected = shift?.codice === c;
             return (
               <Pressable

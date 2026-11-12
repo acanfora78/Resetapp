@@ -9,13 +9,13 @@ import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
 import { PatternForm } from '@/components/PatternForm';
 import { Screen } from '@/components/Screen';
-import { PATTERN_PRESETS } from '@/components/SequenceEditor';
 import it from '@/i18n/it';
 import { errorText } from '@/lib/errors';
 import type { ShiftPatternRow } from '@/lib/database.types';
 import { useUserId } from '@/lib/session';
-import { disablePattern, fetchActivePattern, savePattern } from '@/lib/shifts';
+import { availableCodesFromTypes, disablePattern, fetchActivePattern, fetchShiftTypes, savePattern } from '@/lib/shifts';
 import { fromISODate, toISODate } from '@/plan/cycle';
+import { PATTERN_PRESETS } from '@/plan/shiftSetup';
 import type { ShiftCode } from '@/plan/types';
 import { colors } from '@/theme';
 
@@ -25,10 +25,14 @@ export default function PatternScreen() {
   const [active, setActive] = useState<ShiftPatternRow | null>(null);
   const [sequence, setSequence] = useState<ShiftCode[]>([...PATTERN_PRESETS[0]!]);
   const [startDate, setStartDate] = useState(startOfDay(addDays(new Date(), 1)));
+  const [available, setAvailable] = useState<ShiftCode[]>(['M', 'P', 'N', 'S', 'R']);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    fetchShiftTypes()
+      .then((types) => setAvailable(availableCodesFromTypes(types)))
+      .catch(() => {});
     fetchActivePattern()
       .then((p) => {
         setActive(p);
@@ -104,6 +108,7 @@ export default function PatternScreen() {
             onSequenceChange={setSequence}
             startDate={startDate}
             onStartDateChange={(d) => setStartDate(startOfDay(d))}
+            available={available}
           />
         </>
       )}

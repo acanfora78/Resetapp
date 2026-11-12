@@ -19,13 +19,18 @@ interface Props {
 
 export function Button({ title, onPress, variant = 'primary', disabled, loading, icon, style }: Props) {
   const isDisabled = disabled || loading;
-  const textColor =
-    variant === 'primary' ? colors.onAccent : variant === 'danger' ? colors.danger : colors.text;
+  const textColor = isDisabled
+    ? colors.disabledText
+    : variant === 'primary'
+      ? colors.onAccent
+      : variant === 'danger'
+        ? colors.danger
+        : colors.text;
 
   const content = (
     <View style={styles.inner}>
       {loading ? (
-        <ActivityIndicator color={textColor} />
+        <ActivityIndicator color={variant === 'primary' ? colors.onAccent : colors.text} />
       ) : (
         <>
           {icon}
@@ -45,11 +50,12 @@ export function Button({ title, onPress, variant = 'primary', disabled, loading,
         styles.base,
         variant === 'secondary' && styles.secondary,
         variant === 'danger' && styles.secondary,
-        { opacity: isDisabled ? 0.5 : pressed ? 0.85 : 1 },
+        isDisabled && variant !== 'ghost' && styles.disabled,
+        { opacity: pressed ? 0.85 : 1 },
         style,
       ]}
     >
-      {variant === 'primary' ? (
+      {variant === 'primary' && !isDisabled ? (
         <LinearGradient
           colors={accentGradient}
           start={{ x: 0, y: 0 }}
@@ -74,6 +80,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     justifyContent: 'center',
   },
+  /** Stile unico per i pulsanti disattivati in tutta l'app. */
+  disabled: { backgroundColor: colors.disabledBg, borderColor: colors.disabledBg, justifyContent: 'center' },
   inner: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -57,7 +57,7 @@ export default function Login() {
       />
       <Button title={it.auth.login} onPress={submit} loading={loading} />
       <SocialSignIn />
-      <Pressable onPress={() => router.replace('/registrazione')} hitSlop={8} style={{ alignSelf: 'center' }}>
+      <Pressable onPress={() => router.replace('/benvenuto')} hitSlop={8} style={{ alignSelf: 'center' }}>
         <AppText variant="label" color={colors.accent}>
           {it.auth.goToRegister}
         </AppText>

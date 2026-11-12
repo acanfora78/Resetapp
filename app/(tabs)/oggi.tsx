@@ -14,6 +14,7 @@ import { loadPlanContext, planForDay } from '@/lib/plan';
 import type { PlanContext } from '@/lib/plan';
 import { useSession } from '@/lib/session';
 import { capitalizeFirst } from '@/plan/time';
+import { isWorkShift } from '@/plan/types';
 import { colors, radius, spacing } from '@/theme';
 
 /** Oggi: turno e piano del giorno (versione base; spunte e punteggio nella Fase 3). */
@@ -34,7 +35,7 @@ export default function Today() {
 
   const today = new Date();
   const shift = ctx?.shiftOn(today) ?? null;
-  const hours = ctx && shift && (shift === 'M' || shift === 'P' || shift === 'N') ? ctx.shiftHours[shift] : null;
+  const hours = ctx && shift && isWorkShift(shift) ? ctx.shiftHours[shift] : null;
 
   return (
     <Screen edges={['top']}>

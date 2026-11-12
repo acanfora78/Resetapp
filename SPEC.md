@@ -37,7 +37,9 @@ Reset aiuta chi lavora su turni a rotazione con le notti a dormire abbastanza e 
 ## 3. Funzioni (prima versione)
 
 ### Base
-1. **Calendario turni:** turni per giorno: Mattina (M), Pomeriggio (P), Notte (N), Smonto (S), Riposo (R).
+1. **Calendario turni:** turni per giorno: Mattina (M), Pomeriggio (P), Notte (N), Smonto (S), Riposo (R). Per i **turni da 12 ore**: Giorno (G, es. 07:00–19:00) e Notte (N, es. 19:00–07:00), più Smonto e Riposo. Nell'interfaccia i turni si mostrano con badge colorati ed emoji (🌅 M, 🌇 P, 🌙 N, ☀️ G, 😴 S, 🛋️ R); nel database restano i codici a una lettera.
+   - Tipi di turno: "Turni da 8 ore" (M, P, N), "Turni da 12 ore" (G, N) o "Personalizzati" (M, P, N, G con orari liberi).
+   - Ogni tipo ha l'interruttore "Non faccio questo turno": un turno disattivato non compare nello schema né nella modifica del giorno.
 2. **Turni ciclici automatici:** l'utente imposta il suo schema una volta (es. M-P-N-S-R) e una data di partenza. L'app genera i turni dei mesi successivi. Ogni giorno resta modificabile a mano, e la modifica manuale non viene sovrascritta dallo schema.
 3. **Piano automatico:** per ogni giorno, le azioni con orario (vedi sezione 4).
 4. **Diario del sonno:** ora a letto, ora di sveglia, energia da 1 a 5, nota facoltativa. Deve richiedere al massimo 10 secondi.
@@ -87,6 +89,11 @@ Definizioni:
 | **Notte (N)** | Pisolino di 90 min che finisce 60 min prima della `partenza`. Caffeina permessa solo fino a metà turno. Luce forte nella prima metà del turno. Occhiali scuri all'uscita dal lavoro. Pasto leggero: evitare pasti pesanti tra mezzanotte e le 6. Allerta guida alla fine del turno. Dopo il rientro: routine post-notte, poi sonno. **Se il giorno dopo è di nuovo N:** sonno pieno (`fabbisogno`). **Altrimenti:** vedi Smonto. |
 | **Smonto (S)** | Sonno breve dopo il rientro (3–4 h), poi in piedi. Niente caffeina fino al risveglio. Luce naturale nel pomeriggio. A letto presto la sera (`sveglia_preferita − fabbisogno`), per riallinearsi al giorno. |
 | **Riposo (R)** | Sveglia = `sveglia_preferita`. A letto = `sveglia − fabbisogno`. Luce al mattino. Suggerimento di attività fisica leggera. |
+| **Giorno (G, 12 h)** | Come la Mattina: Sveglia = `partenza − 30 min`. A letto (la sera prima) = `sveglia − fabbisogno − 15 min`. Luce forte al risveglio. Stop caffeina = `ora a letto − 8 h`. Pisolino di 20 min se il sonno della notte prima è sotto le 6 ore. In più: **Pausa + pasto leggero** a metà turno (mangiare leggero, bere acqua). **Sera dopo il turno:** a letto = il più tardi tra (`sveglia del giorno dopo − fabbisogno`) e (`rientro + 60 min`). |
+
+Regole di presentazione:
+- Due azioni non hanno mai lo stesso orario. Sveglia e luce si uniscono in un'unica azione ("Sveglia + luce forte" nei turni del mattino, "Sveglia + luce naturale" nei giorni di riposo); occhiali scuri e allerta guida diventano "Occhiali scuri e guida prudente". Il promemoria del pasto leggero di notte è a mezzanotte (se cade nel turno). Se due azioni coincidono comunque, la seconda slitta di 15 minuti.
+- Se per un giorno non c'è un turno salvato, si usa quello previsto dallo schema ciclico attivo.
 
 Ogni azione del piano ha:
 - `key` stabile (es. `caffeine_stop`, `nap_pre_night`);
@@ -108,15 +115,18 @@ Giorni consecutivi con almeno il 70% delle azioni del piano completate.
 ## 5. Schermate e flusso
 
 ### Onboarding
-1. Benvenuto e promessa
-2. Registrazione: email + password, Accedi con Apple, Accedi con Google
-3. Consenso esplicito al trattamento dei dati sul sonno (GDPR) e accettazione di Termini e Privacy
-4. Che lavoro fai (scelta da elenco + "Altro")
-5. Orari dei turni: inizio e fine di M, P, N, con valori di partenza (es. 6–14, 14–22, 22–6) modificabili
-6. Schema ciclico e data di inizio (possibilità di saltare e inserire i turni a mano)
-7. Orario di sveglia nei giorni liberi e minuti di tragitto
-8. **Anteprima del piano di domani**
-9. **Paywall:** mensile 4,99 € / annuale 44,99 €
+
+La registrazione arriva dopo l'anteprima del piano. Tutti i dati inseriti prima restano sul telefono e vengono scritti su Supabase subito dopo la registrazione e il consenso. "Ho già un account" nel benvenuto porta direttamente al login. La barra "Passo X di 9" e il tasto indietro ci sono in tutti i passi (tranne il caricamento, senza tasto indietro, e il benvenuto, che non ha un passo precedente).
+
+1. Benvenuto e promessa, con 3 vantaggi
+2. Che lavoro fai (scelta da elenco con icone + "Altro")
+3. Orari dei turni: scelta "Turni da 8 ore / Turni da 12 ore / Personalizzati", inizio e fine di ogni turno con valori di partenza modificabili (8 ore: 6–14, 14–22, 22–6; 12 ore: 7–19, 19–7), interruttore "Non faccio questo turno"
+4. Schema ciclico e data di inizio (schemi comuni, "Personalizzato", possibilità di saltare e inserire i turni a mano)
+5. Orario di sveglia nei giorni liberi, minuti di tragitto e fabbisogno di sonno (da 6 a 9 ore, a passi di 30 minuti, default 7,5)
+6. Caricamento "Sto creando il tuo piano…" (2–3 s)
+7. **Anteprima del piano di domani** (timeline con icone)
+8. **Salva il tuo piano:** registrazione (email + password, Accedi con Apple, Accedi con Google), nome facoltativo, consenso esplicito al trattamento dei dati sul sonno (GDPR) e accettazione di Termini e Privacy
+9. **Paywall:** mensile 4,99 € / annuale 44,99 € (preselezionato, "Risparmi 25%", 3,75 €/mese)
 
 L'app non è utilizzabile senza un abbonamento attivo.
 
@@ -137,8 +147,8 @@ Ogni tabella ha `user_id` collegato a `auth.users`, con **Row Level Security att
 
 | Tabella | Campi principali |
 |---|---|
-| `profiles` | `id` (= user id), `nome`, `lavoro`, `sveglia_preferita` (time), `tragitto_min` (int), `fabbisogno_sonno_min` (int, default 450), `consenso_dati_at` (timestamp), `notifiche` (jsonb), `created_at` |
-| `shift_types` | `id`, `user_id`, `codice` (M/P/N/S/R), `nome`, `inizio` (time), `fine` (time) |
+| `profiles` | `id` (= user id), `nome`, `lavoro`, `sveglia_preferita` (time), `tragitto_min` (int), `fabbisogno_sonno_min` (int, default 450), `consenso_dati_at` (timestamp), `termini_accettati_at` (timestamp), `onboarding_completato_at` (timestamp), `tipo_turni` (8h/12h/personalizzati), `notifiche` (jsonb), `created_at` |
+| `shift_types` | `id`, `user_id`, `codice` (M/P/N/G/S/R), `nome`, `inizio` (time), `fine` (time), `attivo` (bool, false = "Non faccio questo turno") |
 | `shift_patterns` | `id`, `user_id`, `sequenza` (text[] es. {M,P,N,S,R}), `data_inizio` (date), `attivo` (bool) |
 | `shifts` | `id`, `user_id`, `data` (date, unico per utente), `codice`, `manuale` (bool) |
 | `sleep_logs` | `id`, `user_id`, `data` (date), `a_letto` (timestamptz), `sveglia` (timestamptz), `minuti_dormiti` (int), `energia` (1–5), `note` |
@@ -195,7 +205,7 @@ Lo sviluppatore usa un **Chromebook** e un **iPhone 17 Pro**, con Claude Code ne
 Ogni fase termina con una build provata su iPhone tramite TestFlight.
 
 1. **Preparazione:** account pronti (GitHub, Expo, Supabase). App da creare su App Store Connect e Play Console.
-2. **Fondamenta:** progetto Expo, tema e brand, Supabase con migrazioni e RLS, login (email, Apple, Google), onboarding (senza paywall), turni e turni ciclici, calendario, struttura delle 5 sezioni.
+2. **Fondamenta:** progetto Expo, tema e brand, Supabase con migrazioni e RLS, login (email, Apple, Google), onboarding (paywall solo grafico), turni da 8 e da 12 ore e turni ciclici, calendario, struttura delle 5 sezioni.
 3. **Cuore:** piano automatico (con test), schermata Oggi, spunte azioni, notifiche, modalità notte.
 4. **Monitoraggio:** diario del sonno, statistiche, punteggio di recupero, serie.
 5. **Recupero:** routine post-notte con audio, timer pisolino, guida pasti, allerta guida, libreria mini-guide.

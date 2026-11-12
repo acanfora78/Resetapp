@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
@@ -9,40 +9,47 @@ import { Screen } from '@/components/Screen';
 import { StepHeader } from '@/components/StepHeader';
 import { Stepper } from '@/components/Stepper';
 import it from '@/i18n/it';
-import { errorText } from '@/lib/errors';
-import { updateProfile } from '@/lib/profile';
-import { useSession, useUserId } from '@/lib/session';
-import { toClock } from '@/plan/time';
+import { useOnboardingDraft } from '@/lib/onboardingDraft';
 
-/** Onboarding, passo 7: sveglia nei giorni liberi e minuti di tragitto. */
+const SLEEP_MIN = 6 * 60;
+const SLEEP_MAX = 9 * 60;
+const SLEEP_STEP = 30;
+
+/** Onboarding, passo 5: sveglia nei giorni liberi, tragitto e fabbisogno di sonno. */
 export default function Habits() {
-  const userId = useUserId();
-  const { profile, refreshProfile } = useSession();
-  const [wake, setWake] = useState(toClock(profile?.sveglia_preferita, '08:00'));
-  const [commute, setCommute] = useState(profile?.tragitto_min ?? 30);
-  const [saving, setSaving] = useState(false);
+  const { draft, update } = useOnboardingDraft();
+  const [wake, setWake] = useState(draft.wake);
+  const [commute, setCommute] = useState(draft.commuteMin);
+  const [sleepNeed, setSleepNeed] = useState(draft.sleepNeedMin);
 
-  const next = async () => {
-    setSaving(true);
-    try {
-      await updateProfile(userId, { sveglia_preferita: wake, tragitto_min: commute });
-      await refreshProfile();
-      router.push('/anteprima');
-    } catch (e) {
-      Alert.alert(it.common.error, errorText(e));
-    } finally {
-      setSaving(false);
-    }
+  const next = () => {
+    update({ wake, commuteMin: commute, sleepNeedMin: sleepNeed });
+    router.push('/caricamento');
   };
 
   return (
-    <Screen footer={<Button title={it.common.continue} onPress={next} loading={saving} />}>
-      <StepHeader step={7} title={it.onboarding.habits.title} />
-      <PickerField mode="time" label={it.onboarding.habits.wake} value={wake} onChange={setWake} />
+    <Screen footer={<Button title={it.common.continue} onPress={next} />}>
+      <StepHeader step={5} title={it.onboarding.habits.title} />
+      <View style={{ gap: 6 }}>
+        <AppText variant="label">{it.onboarding.habits.wake}</AppText>
+        <PickerField mode="time" compact value={wake} onChange={setWake} />
+      </View>
       <View style={{ gap: 6 }}>
         <AppText variant="label">{it.onboarding.habits.commute}</AppText>
         <Stepper value={commute} onChange={setCommute} step={5} min={0} max={180} format={it.common.minutes} />
         <AppText variant="caption">{it.onboarding.habits.commuteHint}</AppText>
+      </View>
+      <View style={{ gap: 6 }}>
+        <AppText variant="label">{it.onboarding.habits.sleepNeed}</AppText>
+        <Stepper
+          value={sleepNeed}
+          onChange={setSleepNeed}
+          step={SLEEP_STEP}
+          min={SLEEP_MIN}
+          max={SLEEP_MAX}
+          format={it.onboarding.habits.hours}
+        />
+        <AppText variant="caption">{it.onboarding.habits.sleepNeedHint}</AppText>
       </View>
     </Screen>
   );

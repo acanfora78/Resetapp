@@ -17,18 +17,19 @@ interface Props {
   onSequenceChange: (v: ShiftCode[]) => void;
   startDate: Date;
   onStartDateChange: (d: Date) => void;
+  available: ShiftCode[];
 }
 
 const PREVIEW_DAYS = 14;
 
 /** Editor dello schema ciclico con anteprima dei prossimi 14 giorni. */
-export function PatternForm({ sequence, onSequenceChange, startDate, onStartDateChange }: Props) {
+export function PatternForm({ sequence, onSequenceChange, startDate, onStartDateChange, available }: Props) {
   const pattern = { sequenza: sequence, dataInizio: toISODate(startDate) };
   const days = Array.from({ length: PREVIEW_DAYS }, (_, i) => addDays(startDate, i));
 
   return (
     <View style={styles.wrap}>
-      <SequenceEditor value={sequence} onChange={onSequenceChange} />
+      <SequenceEditor value={sequence} onChange={onSequenceChange} available={available} />
       <PickerField
         mode="date"
         label={it.onboarding.pattern.startDate}

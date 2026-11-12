@@ -5,6 +5,10 @@ export const colors = {
   surface: '#132451',
   surfaceAlt: '#1B2F63',
   border: 'rgba(255,255,255,0.12)',
+  inputBorder: 'rgba(255,255,255,0.15)',
+  accentSoft: 'rgba(255,165,41,0.12)',
+  disabledBg: '#1C2B55',
+  disabledText: 'rgba(255,255,255,0.4)',
   text: '#FFFFFF',
   textSecondary: 'rgba(255,255,255,0.68)',
   textMuted: 'rgba(255,255,255,0.45)',
@@ -21,8 +25,19 @@ export const shiftColors: Record<ShiftCode, string> = {
   M: '#FFB43A',
   P: '#FF8A3D',
   N: '#7B8CFF',
+  G: '#FFD25E',
   S: '#4FC3B8',
   R: '#5C6C94',
+};
+
+/** Emoji mostrate nei badge dei turni al posto delle lettere. */
+export const shiftEmoji: Record<ShiftCode, string> = {
+  M: '🌅',
+  P: '🌇',
+  N: '🌙',
+  G: '☀️',
+  S: '😴',
+  R: '🛋️',
 };
 
 export const fonts = {
