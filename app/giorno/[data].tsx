@@ -2,7 +2,7 @@ import { format } from 'date-fns';
 import { it as itLocale } from 'date-fns/locale';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
@@ -28,10 +28,12 @@ import { fromISODate, shiftFromPattern } from '@/plan/cycle';
 import { capitalizeFirst } from '@/plan/time';
 import { isWorkShift } from '@/plan/types';
 import type { ShiftCode, ShiftHoursMap } from '@/plan/types';
-import { colors, radius, spacing } from '@/theme';
+import { makeStyles, radius, spacing, useColors } from '@/theme';
 
 /** Modifica del turno di un singolo giorno. */
 export default function DayEditor() {
+  const colors = useColors();
+  const styles = useStyles();
   const userId = useUserId();
   const { reload } = usePlanData();
   const { data } = useLocalSearchParams<{ data: string }>();
@@ -141,7 +143,7 @@ export default function DayEditor() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   option: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -154,4 +156,4 @@ const styles = StyleSheet.create({
   },
   selected: { borderColor: colors.accent },
   note: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md },
-});
+}));

@@ -2,7 +2,7 @@ import * as Haptics from 'expo-haptics';
 import * as WebBrowser from 'expo-web-browser';
 import { Redirect } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
@@ -14,7 +14,7 @@ import { errorText } from '@/lib/errors';
 import { useOnboardingDraft } from '@/lib/onboardingDraft';
 import { updateProfile } from '@/lib/profile';
 import { useSession } from '@/lib/session';
-import { colors, fonts, radius, spacing } from '@/theme';
+import { fonts, makeStyles, radius, spacing, useColors } from '@/theme';
 
 type Plan = 'annuale' | 'mensile';
 
@@ -23,6 +23,8 @@ type Plan = 'annuale' | 'mensile';
  * per ora "Continua" completa l'onboarding.
  */
 export default function Paywall() {
+  const colors = useColors();
+  const styles = useStyles();
   const { userId, refreshProfile } = useSession();
   const { reset } = useOnboardingDraft();
   const [plan, setPlan] = useState<Plan>('annuale');
@@ -101,6 +103,8 @@ function PlanCard(props: {
   detail?: string;
   badge?: string;
 }) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <Pressable
       onPress={props.onPress}
@@ -127,7 +131,7 @@ function PlanCard(props: {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   benefits: { gap: spacing.sm, marginBottom: spacing.sm },
   benefit: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   benefitIcon: { fontSize: 24 },
@@ -157,4 +161,4 @@ const styles = StyleSheet.create({
   badgeText: { fontFamily: fonts.semibold, fontSize: 12, color: colors.onAccent },
   legal: { gap: spacing.sm, marginTop: spacing.sm },
   legalLinks: { flexDirection: 'row', justifyContent: 'center', gap: spacing.lg },
-});
+}));

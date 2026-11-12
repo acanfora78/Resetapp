@@ -1,11 +1,11 @@
 import { addDays, format } from 'date-fns';
 import { it as itLocale } from 'date-fns/locale';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import it from '@/i18n/it';
 import { shiftFromPattern, toISODate } from '@/plan/cycle';
 import type { ShiftCode } from '@/plan/types';
-import { colors, radius, spacing } from '@/theme';
+import { makeStyles, radius, spacing, useColors } from '@/theme';
 
 import { AppText } from './AppText';
 import { PickerField } from './PickerField';
@@ -24,6 +24,8 @@ const PREVIEW_DAYS = 14;
 
 /** Editor dello schema ciclico con anteprima dei prossimi 14 giorni. */
 export function PatternForm({ sequence, onSequenceChange, startDate, onStartDateChange, available }: Props) {
+  const colors = useColors();
+  const styles = useStyles();
   const pattern = { sequenza: sequence, dataInizio: toISODate(startDate) };
   const days = Array.from({ length: PREVIEW_DAYS }, (_, i) => addDays(startDate, i));
 
@@ -56,7 +58,7 @@ export function PatternForm({ sequence, onSequenceChange, startDate, onStartDate
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   wrap: { gap: spacing.md },
   preview: {
     flexDirection: 'row',
@@ -68,4 +70,4 @@ const styles = StyleSheet.create({
   },
   day: { width: `${100 / 7}%`, alignItems: 'center', gap: 2 },
   dayLabel: { textTransform: 'capitalize' },
-});
+}));

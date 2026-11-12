@@ -1,34 +1,49 @@
+import { createContext, createElement, useContext } from 'react';
+import type { ReactNode } from 'react';
+import { StyleSheet } from 'react-native';
+import type { ImageStyle, TextStyle, ViewStyle } from 'react-native';
+
 import type { ShiftCode } from '@/plan/types';
 
-export const colors = {
-  background: '#0B1838',
-  surface: '#132451',
-  surfaceAlt: '#1B2F63',
-  border: 'rgba(255,255,255,0.12)',
-  inputBorder: 'rgba(255,255,255,0.15)',
-  accentSoft: 'rgba(255,165,41,0.12)',
-  disabledBg: '#1C2B55',
-  disabledText: 'rgba(255,255,255,0.4)',
-  text: '#FFFFFF',
-  textSecondary: 'rgba(255,255,255,0.68)',
-  textMuted: 'rgba(255,255,255,0.45)',
-  accent: '#FFA529',
-  accentStart: '#FFB43A',
-  accentEnd: '#FF9318',
-  onAccent: '#0B1838',
-  danger: '#FF6B6B',
-} as const;
+import { dayPalette } from './palettes';
+import type { Palette } from './palettes';
 
-export const accentGradient = [colors.accentStart, colors.accentEnd] as const;
+export { dayPalette, nightPalette } from './palettes';
+export type { Palette } from './palettes';
 
-export const shiftColors: Record<ShiftCode, string> = {
-  M: '#FFB43A',
-  P: '#FF8A3D',
-  N: '#7B8CFF',
-  G: '#FFD25E',
-  S: '#4FC3B8',
-  R: '#5C6C94',
-};
+type NamedStyles<T> = { [P in keyof T]: ViewStyle | TextStyle | ImageStyle };
+
+const PaletteContext = createContext<Palette>(dayPalette);
+
+/** Fornisce la palette attiva (giorno o notte) a tutta l'app. */
+export function PaletteProvider({ palette, children }: { palette: Palette; children: ReactNode }) {
+  return createElement(PaletteContext.Provider, { value: palette }, children);
+}
+
+/** Colori del tema attivo. */
+export const useColors = (): Palette => useContext(PaletteContext);
+
+/**
+ * Stili che dipendono dal tema: `const useStyles = makeStyles((colors) => ({ ... }))`,
+ * poi nel componente `const styles = useStyles()`. Gli stili sono calcolati una volta per palette.
+ */
+export function makeStyles<T extends NamedStyles<T>>(
+  factory: (colors: Palette) => T | NamedStyles<T>,
+) {
+  const cache = new Map<Palette, T>();
+  return function useStyles(): T {
+    const colors = useColors();
+    let styles = cache.get(colors);
+    if (!styles) {
+      styles = StyleSheet.create(factory(colors) as T);
+      cache.set(colors, styles);
+    }
+    return styles;
+  };
+}
+
+/** Gradiente dell'accento per la palette data. */
+export const accentGradientOf = (c: Palette) => [c.accentStart, c.accentEnd] as const;
 
 /** Emoji mostrate nei badge dei turni al posto delle lettere. */
 export const shiftEmoji: Record<ShiftCode, string> = {

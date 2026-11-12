@@ -1,16 +1,18 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
 import { Screen } from '@/components/Screen';
 import { StepHeader } from '@/components/StepHeader';
 import it from '@/i18n/it';
-import { colors, radius, spacing } from '@/theme';
+import { makeStyles, radius, spacing, useColors } from '@/theme';
 
 /** Onboarding, passo 1: benvenuto e promessa. */
 export default function Welcome() {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <Screen
       footer={
@@ -49,7 +51,7 @@ export default function Welcome() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: spacing.md },
   logo: { width: 220, height: 57 },
   title: { marginTop: spacing.sm },
@@ -63,4 +65,4 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   benefitIcon: { fontSize: 24 },
-});
+}));

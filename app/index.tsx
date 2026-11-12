@@ -3,10 +3,11 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { isDraftComplete, useOnboardingDraft } from '@/lib/onboardingDraft';
 import { useSession } from '@/lib/session';
-import { colors } from '@/theme';
+import { useColors } from '@/theme';
 
 /** Smista l'utente: accesso, onboarding o app. */
 export default function Index() {
+  const colors = useColors();
   const { loading, session, profile } = useSession();
   const { ready, draft } = useOnboardingDraft();
 

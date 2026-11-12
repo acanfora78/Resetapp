@@ -41,9 +41,17 @@ export type PlanItemKey =
   | 'natural_light'
   | 'light_activity';
 
+/**
+ * Tipo di giornata, usato per scegliere la spiegazione ("perché") di ogni azione.
+ * "first_night" vale anche per una notte singola.
+ */
+export type DayContext = 'M' | 'P' | 'N' | 'G' | 'S' | 'R' | 'first_night' | 'last_night' | 'first_rest';
+
 export interface PlanItem {
   /** Chiave stabile, usata per spunte e notifiche. */
   key: PlanItemKey;
+  /** Contesto per il testo della spiegazione. */
+  context: DayContext;
   /** Orario assoluto (fuso del dispositivo). */
   time: Date;
   /** Se l'azione va notificata. */

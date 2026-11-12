@@ -2,7 +2,13 @@
  * Tutti i testi dell'interfaccia, in italiano.
  * Per aggiungere l'inglese in futuro basterà creare en.ts con la stessa struttura.
  */
-import type { PlanItemKey, ShiftCode } from '@/plan/types';
+import type { DayContext, PlanItemKey, ShiftCode } from '@/plan/types';
+
+interface PlanItemText {
+  title: string;
+  why: string;
+  whyBy?: Partial<Record<DayContext, string>>;
+}
 
 export const it = {
   common: {
@@ -196,7 +202,10 @@ export const it = {
     next: 'Prossima',
     markDone: (title: string) => `Segna come fatta: ${title}`,
     markUndone: (title: string) => `Segna come da fare: ${title}`,
-    comingSoon: 'Punteggio di recupero e serie arrivano nel prossimo aggiornamento.',
+    doneGroup: (n: number) => `Fatte (${n})`,
+    nextDay: (label: 'Domani' | 'Oggi', shiftName: string, hours: string | null) =>
+      hours ? `${label}: ${shiftName} ${hours}` : `${label}: ${shiftName}`,
+    nextDayFree: (label: 'Domani' | 'Oggi') => `${label}: nessun turno`,
     loadError: 'Non riesco a caricare il piano.',
     tapToRetry: 'Tocca per riprovare.',
     nightModeOn: 'Modalità notte attiva',
@@ -205,6 +214,7 @@ export const it = {
       body: 'Ti avviso quando è ora di dormire, staccare dalla caffeina o fare il pisolino.',
       enable: 'Attiva',
       later: 'Non ora',
+      compact: 'Promemoria spenti',
     },
   },
 
@@ -213,10 +223,6 @@ export const it = {
     deniedTitle: 'Notifiche bloccate',
     deniedBody: 'Per ricevere i promemoria, attiva le notifiche di Reset nelle Impostazioni dell’iPhone.',
     openSettings: 'Apri Impostazioni',
-  },
-
-  placeholder: {
-    comingSoon: 'In arrivo nei prossimi aggiornamenti.',
   },
 
   calendar: {
@@ -277,26 +283,137 @@ export const it = {
   },
 
   plan: {
+    /**
+     * Titolo e spiegazione di ogni azione. `why` è il testo predefinito; `whyBy`
+     * lo sostituisce per tipo di giornata (M, P, N, G, S, R, prima notte, ultima notte,
+     * primo giorno di riposo). Per "A letto" il tipo di giornata è quello di domani.
+     */
     items: {
-      wake: { title: 'Sveglia', why: 'Un orario regolare aiuta il corpo a tenere il ritmo.' },
-      wake_bright_light: { title: 'Sveglia + luce forte', why: 'Accendi tutte le luci o esci entro 30 minuti: il corpo capisce che la giornata è iniziata.' },
-      wake_morning_light: { title: 'Sveglia + luce naturale', why: 'Esci o apri le finestre appena sveglio: tiene il ritmo regolare.' },
-      bedtime: { title: 'A letto', why: 'Così dormi le ore che ti servono.' },
-      low_light: { title: 'Luce bassa e decompressione', why: 'Luci soffuse dopo il turno aiutano a prendere sonno.' },
-      caffeine_stop: { title: 'Stop caffeina', why: 'La caffeina resta in circolo per ore e disturba il sonno.' },
-      nap_short: { title: 'Pisolino di 20 minuti', why: 'Hai dormito poco: un pisolino breve recupera senza intontirti.' },
-      shift_break: { title: 'Pausa + pasto leggero', why: 'A metà turno mangia leggero e bevi acqua: arrivi alla fine con più energia.' },
-      nap_pre_night: { title: 'Pisolino di 90 minuti', why: 'Un ciclo completo di sonno prima della notte ti tiene più lucido.' },
-      night_bright_light: { title: 'Luce forte a inizio turno', why: 'Nella prima metà della notte la luce aiuta a restare sveglio.' },
-      night_caffeine_stop: { title: 'Ultima caffeina', why: 'Dopo metà turno la caffeina rovina il sonno di domani.' },
-      night_light_meal: { title: 'Pasti leggeri stanotte', why: 'Tra mezzanotte e le 6 evita i pasti pesanti.' },
-      drive_alert: { title: 'Occhiali scuri e guida prudente', why: 'Meno luce sulla via di casa. Dopo la notte i riflessi sono più lenti: se hai sonno, fermati.' },
-      post_night_routine: { title: 'Routine post-notte', why: 'Doccia tiepida, luce bassa, telefono lontano, stanza buia e fresca.' },
-      day_sleep: { title: 'Sonno pieno', why: 'Stanotte lavori ancora: recupera tutto il sonno che ti serve.' },
-      short_sleep: { title: 'Sonno breve (3–4 ore)', why: 'Poi in piedi, per dormire stanotte. Niente caffeina fino al risveglio.' },
-      natural_light: { title: 'Luce naturale', why: 'Un po’ di luce nel pomeriggio ti riporta sul ritmo del giorno.' },
-      light_activity: { title: 'Attività fisica leggera', why: 'Una camminata o un po’ di movimento aiutano il recupero.' },
-    } satisfies Record<PlanItemKey, { title: string; why: string }>,
+      wake: {
+        title: 'Sveglia',
+        why: 'Un orario regolare aiuta il corpo a tenere il ritmo.',
+        whyBy: {
+          P: 'Turno di pomeriggio: la mattina è tua, alzati senza fretta.',
+          first_night: 'Ti alzi a orario normale: il pisolino del pomeriggio ti ricarica per stanotte.',
+          N: 'Hai recuperato il sonno: mangia qualcosa e prepara la notte con calma.',
+          last_night: 'Ultima notte in arrivo: alzati, mangia bene e tieni da parte le energie.',
+          S: 'Basta così: alzarti adesso ti fa dormire bene stanotte.',
+        },
+      },
+      wake_bright_light: {
+        title: 'Sveglia + luce forte',
+        why: 'Accendi tutte le luci o esci entro 30 minuti: il corpo capisce che la giornata è iniziata.',
+        whyBy: {
+          M: 'Turno presto: luci accese subito, così il corpo si sveglia anche se fuori è buio.',
+          G: 'Giornata lunga: luce forte appena sveglio per partire con energia.',
+        },
+      },
+      wake_morning_light: {
+        title: 'Sveglia + luce naturale',
+        why: 'Esci o apri le finestre appena sveglio: tiene il ritmo regolare.',
+        whyBy: {
+          R: 'Giorno libero: alzati a orario regolare e prendi luce, il ritmo resta stabile.',
+          first_rest: 'Primo giorno libero: alzati a orario normale anche se hai sonno, così il ritmo si sistema prima.',
+        },
+      },
+      bedtime: {
+        title: 'A letto',
+        why: 'Così dormi le ore che ti servono.',
+        whyBy: {
+          M: 'Domani si parte presto: a letto adesso per dormire le ore che ti servono.',
+          G: 'Domani 12 ore dalla mattina: ti serve un sonno pieno, a letto adesso.',
+          P: 'Domani lavori il pomeriggio: dormi con calma fino al mattino.',
+          first_night: 'Domani c’è la prima notte: dormi pieno stanotte, al resto pensa il pisolino.',
+          first_rest: 'Domani sei libero: a letto comunque a orario regolare, non fare tardi.',
+          R: 'Domani sei libero: tieni l’orario regolare, il ritmo ringrazia.',
+        },
+      },
+      low_light: {
+        title: 'Luce bassa e decompressione',
+        why: 'Luci soffuse dopo il turno aiutano a prendere sonno.',
+      },
+      caffeine_stop: {
+        title: 'Stop caffeina',
+        why: 'La caffeina resta in circolo per ore e disturba il sonno.',
+        whyBy: {
+          M: 'Stasera vai a letto presto: da adesso niente caffè, così ti addormenti senza fatica.',
+          P: 'Ultimo caffè adesso: dopo il turno vuoi riuscire a dormire.',
+          G: 'Ultimo caffè della giornata: per la seconda metà del turno punta su pausa e acqua.',
+        },
+      },
+      nap_short: {
+        title: 'Pisolino di 20 minuti',
+        why: 'Hai dormito poco: un pisolino breve recupera senza intontirti.',
+      },
+      shift_break: {
+        title: 'Pausa + pasto leggero',
+        why: 'A metà turno mangia leggero e bevi acqua: arrivi alla fine con più energia.',
+      },
+      nap_pre_night: {
+        title: 'Pisolino di 90 minuti',
+        why: 'Un ciclo completo di sonno prima della notte ti tiene più lucido.',
+        whyBy: {
+          first_night: 'Prima notte: questo pisolino è il tuo pieno di energia. Stanza buia, sveglia puntata.',
+          N: 'Un ciclo completo prima di ripartire ti tiene lucido fino al mattino.',
+          last_night: 'Ultima notte: è quella in cui la stanchezza si sente di più, ricarica bene.',
+        },
+      },
+      night_bright_light: {
+        title: 'Luce forte a inizio turno',
+        why: 'Nella prima metà della notte la luce aiuta a restare sveglio.',
+        whyBy: {
+          first_night: 'Prima notte: luce forte nella prima metà del turno, il corpo si adatta più in fretta.',
+        },
+      },
+      night_caffeine_stop: {
+        title: 'Ultima caffeina',
+        why: 'Dopo metà turno la caffeina rovina il sonno di domani.',
+        whyBy: {
+          last_night: 'Da qui niente caffè: domattina devi riuscire a dormire subito, anche se è un sonno breve.',
+        },
+      },
+      night_light_meal: {
+        title: 'Pasti leggeri stanotte',
+        why: 'Tra mezzanotte e le 6 evita i pasti pesanti.',
+      },
+      drive_alert: {
+        title: 'Occhiali scuri e guida prudente',
+        why: 'Meno luce sulla via di casa. Dopo la notte i riflessi sono più lenti: se hai sonno, fermati.',
+        whyBy: {
+          last_night: 'Fine delle notti: la stanchezza si somma. Occhiali scuri e, se hai sonno, non guidare.',
+        },
+      },
+      post_night_routine: {
+        title: 'Routine post-notte',
+        why: 'Doccia tiepida, luce bassa, telefono lontano, stanza buia e fresca.',
+        whyBy: {
+          N: 'Stasera lavori di nuovo: routine breve, poi sonno pieno.',
+          last_night: 'Notti finite: routine breve, poi solo un sonno corto per tornare al giorno.',
+        },
+      },
+      day_sleep: {
+        title: 'Sonno pieno',
+        why: 'Stanotte lavori ancora: recupera tutto il sonno che ti serve.',
+        whyBy: {
+          last_night: 'Stanotte è l’ultima: dormi pieno adesso, ti servirà.',
+        },
+      },
+      short_sleep: {
+        title: 'Sonno breve (3–4 ore)',
+        why: 'Poi in piedi, per dormire stanotte. Niente caffeina fino al risveglio.',
+      },
+      natural_light: {
+        title: 'Luce naturale',
+        why: 'Un po’ di luce nel pomeriggio ti riporta sul ritmo del giorno.',
+      },
+      light_activity: {
+        title: 'Attività fisica leggera',
+        why: 'Una camminata o un po’ di movimento aiutano il recupero.',
+        whyBy: {
+          first_rest: 'Una camminata all’aperto aiuta a scaricare la stanchezza dei turni.',
+        },
+      },
+    } satisfies Record<PlanItemKey, PlanItemText>,
   },
 } as const;
 

@@ -2,14 +2,12 @@ import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/d
 import { format } from 'date-fns';
 import { it as itLocale } from 'date-fns/locale';
 import { useState } from 'react';
-import { Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Modal, Platform, Pressable, View } from 'react-native';
 
 import it from '@/i18n/it';
 import { atClock, capitalizeFirst, formatClock } from '@/plan/time';
 import type { ClockTime } from '@/plan/types';
-import { colors, radius, spacing } from '@/theme';
-
-import { NightDimmer } from '@/lib/nightMode';
+import { makeStyles, radius, spacing, useColors } from '@/theme';
 
 import { AppText } from './AppText';
 import { Button } from './Button';
@@ -20,6 +18,8 @@ type Props =
 
 /** Campo che apre il selettore di ora o data nativo. */
 export function PickerField(props: Props) {
+  const colors = useColors();
+  const styles = useStyles();
   const [open, setOpen] = useState(false);
   const dateValue = props.mode === 'time' ? atClock(new Date(), props.value) : props.value;
   const [draft, setDraft] = useState<Date>(dateValue);
@@ -87,7 +87,6 @@ export function PickerField(props: Props) {
                 }}
               />
             </Pressable>
-            <NightDimmer />
           </Pressable>
         </Modal>
       ) : null}
@@ -95,7 +94,7 @@ export function PickerField(props: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   wrap: { gap: 6 },
   field: {
     backgroundColor: colors.surface,
@@ -116,4 +115,4 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
     gap: spacing.md,
   },
-});
+}));

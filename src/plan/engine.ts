@@ -9,7 +9,7 @@ import { addDays, addMinutes, startOfDay } from 'date-fns';
 
 import { NOTIFY, RULES } from './rules';
 import { atClock, shiftWindow } from './time';
-import type { PlanInput, PlanItem, PlanItemKey, ShiftCode, WorkShiftCode } from './types';
+import type { DayContext, PlanInput, PlanItem, PlanItemKey, ShiftCode, WorkShiftCode } from './types';
 
 interface SleepWindow {
   bed: Date;
@@ -78,6 +78,24 @@ export function nightSleep(
   return { bed, wake };
 }
 
+/**
+ * Tipo di giornata. Un riposo subito dopo la notte vale come Smonto; la prima
+ * notte di una serie (anche singola) è "first_night", l'ultima di una serie "last_night";
+ * il primo riposo dopo un turno o uno smonto è "first_rest".
+ */
+export function dayContext(prev: ShiftCode | null, shift: ShiftCode | null, next: ShiftCode | null): DayContext {
+  if (shift === 'N') {
+    if (prev !== 'N') return 'first_night';
+    if (next !== 'N') return 'last_night';
+    return 'N';
+  }
+  if (prev === 'N' && (shift === 'R' || shift === null)) return 'S';
+  if (shift === 'R' || shift === null) {
+    return prev !== null && prev !== 'R' ? 'first_rest' : 'R';
+  }
+  return shift;
+}
+
 /** Sposta le azioni che cadono alla stessa ora, così nessun orario si ripete. */
 function spreadCollisions(items: PlanItem[]): PlanItem[] {
   const sorted = [...items].sort((a, b) => a.time.getTime() - b.time.getTime());
@@ -95,7 +113,9 @@ function spreadCollisions(items: PlanItem[]): PlanItem[] {
 export function computePlan(input: PlanInput): PlanItem[] {
   const day = startOfDay(input.date);
   const items: PlanItem[] = [];
-  const add = (key: PlanItemKey, time: Date) => items.push({ key, time, notify: NOTIFY[key] });
+  const context = dayContext(input.prevShift, input.shift, input.nextShift);
+  const add = (key: PlanItemKey, time: Date, ctx: DayContext = context) =>
+    items.push({ key, time, notify: NOTIFY[key], context: ctx });
 
   const shift = input.shift;
   const afterNight = input.prevShift === 'N';
@@ -182,7 +202,8 @@ export function computePlan(input: PlanInput): PlanItem[] {
     if (effective === 'M' || effective === 'G' || effective === 'P') {
       add('caffeine_stop', addMinutes(tonight.bed, -RULES.CAFFEINE_CUTOFF_BEFORE_BED_MIN));
     }
-    add('bedtime', tonight.bed);
+    // L'ora di andare a letto si spiega con il turno di domani.
+    add('bedtime', tonight.bed, dayContext(shift, input.nextShift, null));
   }
 
   return spreadCollisions(items);

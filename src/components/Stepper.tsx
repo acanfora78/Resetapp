@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
-import { colors, radius } from '@/theme';
+import { makeStyles, radius, useColors } from '@/theme';
 
 import { AppText } from './AppText';
 
@@ -15,6 +15,8 @@ interface Props {
 }
 
 export function Stepper({ value, onChange, step = 5, min = 0, max = 240, format }: Props) {
+  const colors = useColors();
+  const styles = useStyles();
   const btn = (dir: -1 | 1) => (
     <Pressable
       accessibilityRole="button"
@@ -36,7 +38,7 @@ export function Stepper({ value, onChange, step = 5, min = 0, max = 240, format 
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -55,4 +57,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   value: { flex: 1, textAlign: 'center' },
-});
+}));

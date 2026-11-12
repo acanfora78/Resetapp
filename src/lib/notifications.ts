@@ -7,11 +7,13 @@ import * as Notifications from 'expo-notifications';
 import { Linking, Platform } from 'react-native';
 
 import it from '@/i18n/it';
+import { planText } from '@/i18n/planText';
 import type { PlanContext } from '@/plan/context';
 import { toISODate } from '@/plan/cycle';
 import { notificationSchedule } from '@/plan/today';
 
 import { fetchCheckIds } from './checks';
+import type { NotificationPrefs } from './notificationCard';
 import type { ProfileRow } from './database.types';
 
 const ANDROID_CHANNEL = 'piano';
@@ -28,11 +30,7 @@ if (supported) {
   });
 }
 
-/** Preferenze salvate in profiles.notifiche. */
-export interface NotificationPrefs {
-  /** undefined = l'utente non ha ancora scelto. */
-  abilitate?: boolean;
-}
+export type { NotificationPrefs } from './notificationCard';
 
 export const notificationPrefs = (profile: ProfileRow | null): NotificationPrefs =>
   (profile?.notifiche ?? {}) as NotificationPrefs;
@@ -86,7 +84,7 @@ async function doSync(ctx: PlanContext | null, profile: ProfileRow | null) {
   const reminders = notificationSchedule(ctx, now, done);
 
   for (const r of reminders) {
-    const s = it.plan.items[r.key];
+    const s = planText(r);
     await Notifications.scheduleNotificationAsync({
       identifier: r.id,
       content: { title: s.title, body: s.why, sound: true },

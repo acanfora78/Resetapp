@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import type { ReactNode } from 'react';
 
-import { colors, radius } from '@/theme';
+import { makeStyles, radius, useColors } from '@/theme';
 
 interface Props {
   checked: boolean;
@@ -11,6 +11,8 @@ interface Props {
 }
 
 export function Checkbox({ checked, onChange, children }: Props) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityRole="checkbox"
@@ -26,7 +28,7 @@ export function Checkbox({ checked, onChange, children }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: { flexDirection: 'row', gap: 14, alignItems: 'flex-start', paddingVertical: 6 },
   box: {
     width: 26,
@@ -40,4 +42,4 @@ const styles = StyleSheet.create({
   },
   boxOn: { backgroundColor: colors.accent, borderColor: colors.accent },
   label: { flex: 1 },
-});
+}));

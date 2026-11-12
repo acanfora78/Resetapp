@@ -8,30 +8,19 @@ import {
 import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { NightDimmer, NightModeProvider } from '@/lib/nightMode';
+import { NightModeProvider } from '@/lib/nightMode';
 import { OnboardingDraftProvider } from '@/lib/onboardingDraft';
 import { PlanDataProvider } from '@/lib/planData';
 import { SessionProvider, useSession } from '@/lib/session';
-import { colors } from '@/theme';
+import { useColors } from '@/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
-const navTheme = {
-  ...DarkTheme,
-  colors: {
-    ...DarkTheme.colors,
-    primary: colors.accent,
-    background: colors.background,
-    card: colors.background,
-    text: colors.text,
-    border: colors.border,
-  },
-};
-
 function RootNavigator() {
+  const colors = useColors();
   const { loading, session, profile } = useSession();
   const signedIn = !!session;
   const onboarded = !!profile?.onboarding_completato_at;
@@ -40,7 +29,24 @@ function RootNavigator() {
     if (!loading) SplashScreen.hideAsync().catch(() => {});
   }, [loading]);
 
+  // Il tema della navigazione segue la palette attiva (giorno o modalità notte).
+  const navTheme = useMemo(
+    () => ({
+      ...DarkTheme,
+      colors: {
+        ...DarkTheme.colors,
+        primary: colors.accent,
+        background: colors.background,
+        card: colors.background,
+        text: colors.text,
+        border: colors.border,
+      },
+    }),
+    [colors],
+  );
+
   return (
+    <ThemeProvider value={navTheme}>
     <Stack
       screenOptions={{
         headerShown: false,
@@ -63,6 +69,7 @@ function RootNavigator() {
         <Stack.Screen name="impostazioni/sonno" />
       </Stack.Protected>
     </Stack>
+    </ThemeProvider>
   );
 }
 
@@ -78,19 +85,16 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <ThemeProvider value={navTheme}>
         <SessionProvider>
           <OnboardingDraftProvider>
             <PlanDataProvider>
               <NightModeProvider>
                 <StatusBar style="light" />
                 <RootNavigator />
-                <NightDimmer />
               </NightModeProvider>
             </PlanDataProvider>
           </OnboardingDraftProvider>
         </SessionProvider>
-      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

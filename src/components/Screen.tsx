@@ -1,9 +1,9 @@
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { ReactNode } from 'react';
 import type { Edge } from 'react-native-safe-area-context';
 
-import { colors, spacing } from '@/theme';
+import { makeStyles, spacing, useColors } from '@/theme';
 
 interface Props {
   children: ReactNode;
@@ -17,6 +17,8 @@ interface Props {
 const FOOTER_BUTTON_HEIGHT = 54;
 
 export function Screen({ children, footer, scroll = true, edges = ['top', 'bottom'] }: Props) {
+  const colors = useColors();
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   // Con un pulsante fisso in basso, l'ultimo campo deve poter salire sopra di esso.
   const bottomSpace = footer ? FOOTER_BUTTON_HEIGHT + insets.bottom : 0;
@@ -43,9 +45,9 @@ export function Screen({ children, footer, scroll = true, edges = ['top', 'botto
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   safe: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   content: { padding: spacing.lg, gap: spacing.md, flexGrow: 1 },
   footer: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md, paddingTop: spacing.sm, gap: spacing.sm },
-});
+}));

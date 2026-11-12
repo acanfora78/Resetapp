@@ -13,7 +13,7 @@ import {
 import { it as itLocale } from 'date-fns/locale';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
@@ -25,11 +25,13 @@ import type { ShiftRow } from '@/lib/database.types';
 import { fetchActivePattern, fetchShifts, generateRange, toCyclePattern } from '@/lib/shifts';
 import { toISODate } from '@/plan/cycle';
 import { SHIFT_CODES } from '@/plan/types';
-import { colors, radius, spacing } from '@/theme';
+import { makeStyles, radius, spacing, useColors } from '@/theme';
 
 const WEEK = { weekStartsOn: 1 as const };
 
 export default function Calendar() {
+  const colors = useColors();
+  const styles = useStyles();
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
   const [shifts, setShifts] = useState<Map<string, ShiftRow>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -152,7 +154,7 @@ export default function Calendar() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   monthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   monthLabel: { textTransform: 'capitalize' },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
@@ -172,4 +174,4 @@ const styles = StyleSheet.create({
   error: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, gap: 4 },
   legend: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginTop: spacing.sm },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-});
+}));

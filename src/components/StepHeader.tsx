@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import it from '@/i18n/it';
-import { colors, radius } from '@/theme';
+import { makeStyles, radius, useColors } from '@/theme';
 
 import { AppText } from './AppText';
 
@@ -17,6 +17,8 @@ interface Props {
 
 /** Intestazione dei passi dell'onboarding con barra di avanzamento. */
 export function StepHeader({ step, title, subtitle, showBack = true }: Props) {
+  const colors = useColors();
+  const styles = useStyles();
   const total = it.onboarding.totalSteps;
   return (
     <View style={styles.wrap}>
@@ -45,9 +47,9 @@ export function StepHeader({ step, title, subtitle, showBack = true }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   wrap: { gap: 12, marginBottom: 8 },
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   track: { height: 4, borderRadius: radius.pill, backgroundColor: colors.surfaceAlt, overflow: 'hidden' },
   fill: { height: 4, backgroundColor: colors.accent, borderRadius: radius.pill },
-});
+}));

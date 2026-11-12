@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
-import { colors, radius } from '@/theme';
+import { makeStyles, radius, useColors } from '@/theme';
 
 import { AppText } from './AppText';
 
@@ -14,6 +14,8 @@ interface Props<T extends string> {
 
 /** Scelta tra poche opzioni affiancate. */
 export function Segmented<T extends string>({ options, value, onChange, label }: Props<T>) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <View style={styles.segment} accessibilityRole="radiogroup">
       {options.map((o) => {
@@ -40,8 +42,8 @@ export function Segmented<T extends string>({ options, value, onChange, label }:
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   segment: { flexDirection: 'row', backgroundColor: colors.surface, borderRadius: radius.pill, padding: 4, gap: 4 },
   item: { flex: 1, paddingVertical: 10, paddingHorizontal: 4, borderRadius: radius.pill },
   on: { backgroundColor: colors.accent },
-});
+}));

@@ -1,14 +1,14 @@
 /**
- * Modalità notte: interfaccia più scura e meno luminosa.
+ * Modalità notte: tema scuro e poco luminoso (palette notturna, vedi theme/palettes.ts).
  * Automatica durante i turni di notte, oppure sempre attiva / disattivata.
  * La preferenza è del dispositivo (AsyncStorage).
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { StyleSheet, View } from 'react-native';
 
 import { isNightShiftTime } from '@/plan/today';
+import { dayPalette, nightPalette, PaletteProvider } from '@/theme';
 
 import { usePlanData } from './planData';
 
@@ -16,8 +16,6 @@ export type NightModePref = 'auto' | 'on' | 'off';
 
 const STORAGE_KEY = 'reset.nightMode.v1';
 const TICK_MS = 60_000;
-/** Quanto scurisce lo schermo (0 = niente, 1 = nero). */
-export const NIGHT_DIM = 0.45;
 
 interface NightModeState {
   pref: NightModePref;
@@ -53,18 +51,16 @@ export function NightModeProvider({ children }: { children: ReactNode }) {
   const active = pref === 'on' || (pref === 'auto' && auto);
 
   const value = useMemo(() => ({ pref, setPref, active, auto }), [pref, setPref, active, auto]);
-  return <NightModeContext.Provider value={value}>{children}</NightModeContext.Provider>;
+  return (
+    <NightModeContext.Provider value={value}>
+      {/* La modalità notte è un tema: tutta l'interfaccia usa la palette notturna. */}
+      <PaletteProvider palette={active ? nightPalette : dayPalette}>{children}</PaletteProvider>
+    </NightModeContext.Provider>
+  );
 }
 
 export function useNightMode(): NightModeState {
   const v = useContext(NightModeContext);
   if (!v) throw new Error('useNightMode va usato dentro NightModeProvider');
   return v;
-}
-
-/** Velo scuro sopra tutta l'interfaccia, non blocca i tocchi. */
-export function NightDimmer() {
-  const { active } = useNightMode();
-  if (!active) return null;
-  return <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: `rgba(0,0,0,${NIGHT_DIM})` }]} />;
 }

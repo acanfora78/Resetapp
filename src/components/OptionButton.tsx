@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
-import { colors, radius } from '@/theme';
+import { makeStyles, radius, useColors } from '@/theme';
 
 import { AppText } from './AppText';
 
@@ -15,6 +15,8 @@ interface Props {
 
 /** Opzione selezionabile in un elenco, con vibrazione leggera alla selezione. */
 export function OptionButton({ label, selected, onPress, icon }: Props) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityRole="radio"
@@ -36,7 +38,7 @@ export function OptionButton({ label, selected, onPress, icon }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   base: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -52,4 +54,4 @@ const styles = StyleSheet.create({
   icon: { fontSize: 22 },
   label: { flex: 1 },
   check: { width: 24, alignItems: 'center' },
-});
+}));

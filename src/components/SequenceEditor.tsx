@@ -1,9 +1,9 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import it from '@/i18n/it';
 import { presetsFor } from '@/plan/shiftSetup';
 import type { ShiftCode } from '@/plan/types';
-import { colors, radius, spacing } from '@/theme';
+import { makeStyles, radius, spacing, useColors } from '@/theme';
 
 import { AppText } from './AppText';
 import { ShiftBadge } from './ShiftBadge';
@@ -18,6 +18,8 @@ interface Props {
 const MAX_LENGTH = 60;
 
 export function SequenceEditor({ value, onChange, available }: Props) {
+  const colors = useColors();
+  const styles = useStyles();
   const presets = presetsFor(available);
   const matchesPreset = presets.some((p) => p.join('-') === value.join('-'));
   return (
@@ -95,7 +97,7 @@ export function SequenceEditor({ value, onChange, available }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   wrap: { gap: spacing.sm },
   presets: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.sm },
   preset: {
@@ -118,4 +120,4 @@ const styles = StyleSheet.create({
   adders: { flexDirection: 'row', justifyContent: 'space-around', marginTop: spacing.sm },
   adder: { alignItems: 'center', gap: 4, padding: 4, minWidth: 56 },
   actions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.xs },
-});
+}));

@@ -30,6 +30,9 @@ Reset aiuta chi lavora su turni a rotazione con le notti a dormire abbastanza e 
   - Testo chiaro: `#FFFFFF`, testo secondario: bianco al 60–70% di opacità
 - Font: **Poppins** (Bold per i titoli, Regular/Medium per il testo)
 - Tema: scuro di default. L'app viene usata soprattutto di notte o appena svegli.
+- **Modalità notte** (tema dedicato, non un velo sopra l'interfaccia): sfondo `#05091A`, superfici `#0B1430`, accento ambra tenue `#E8A33D`, testo bianco caldo `#F2E6D8` all'85%; contrasto del testo almeno AA (verificato da test), nessun elemento bianco puro grande. Palette in `src/theme/palettes.ts`.
+- **Interruttori:** un solo componente in tutta l'app. Acceso: traccia con il gradiente del brand e pallino chiaro; spento: traccia `#2A3A66` e pallino `#C9D1E6`; vibrazione leggera al cambio.
+- **Barra in basso:** rispetta la safe area; icone 24 px, etichette 11 px, area di tocco minima 44 px.
 - Logo e icone: nella cartella `assets/brand/` (SVG e PNG). Icona app: `reset-icona-AppStore-1024.png`.
 
 ---
@@ -97,6 +100,10 @@ Regole di presentazione:
 - Due azioni non hanno mai lo stesso orario. Sveglia e luce si uniscono in un'unica azione ("Sveglia + luce forte" nei turni del mattino, "Sveglia + luce naturale" nei giorni di riposo); occhiali scuri e allerta guida diventano "Occhiali scuri e guida prudente". Il promemoria del pasto leggero di notte è a mezzanotte (se cade nel turno). Se due azioni coincidono comunque, la seconda slitta di 15 minuti.
 - Se per un giorno non c'è un turno salvato, si usa quello previsto dallo schema ciclico attivo.
 
+**Spiegazioni secondo il tipo di giornata.** Il "perché" di ogni azione dipende dal tipo di giornata: M, P, N, G, S, R, prima notte (anche notte singola), ultima notte di una serie, primo giorno di riposo. Un riposo subito dopo la notte vale come Smonto. Per "A letto" conta il tipo di giornata di domani. Tabella dei testi in `src/i18n/it.ts` (`plan.items[…].whyBy`), con un testo predefinito per ogni azione.
+
+**Card "Attiva i promemoria" su Oggi.** Non compare mai se le notifiche sono attive. "Non ora" la nasconde per 3 giorni; poi torna in versione compatta (una riga con "Attiva"). Dopo 3 "Non ora" non compare più su Oggi e resta solo in Profilo. Costanti in `src/constants/app.ts`; stato in `profiles.notifiche` (`abilitate`, `rimandi`, `rimandato_at`).
+
 Ogni azione del piano ha:
 - `key` stabile (es. `caffeine_stop`, `nap_pre_night`);
 - orario;
@@ -135,7 +142,7 @@ L'app non è utilizzabile senza un abbonamento attivo.
 ### Barra in basso (5 sezioni)
 | Sezione | Contenuto |
 |---|---|
-| **Oggi** | Turno del giorno, punteggio di recupero, prossime azioni con spunta, pulsanti rapidi (pisolino, routine post-notte) |
+| **Oggi** | Turno del giorno con la riga del turno di domani (spazio a destra per l'anello del punteggio di recupero), punteggio di recupero, azioni con spunta (in cima la prossima, le fatte nel gruppo ripiegabile "Fatte (n)"), card "Attiva i promemoria", pulsanti rapidi (pisolino, routine post-notte). Nessun testo segnaposto. |
 | **Calendario** | Vista mensile dei turni, tocca un giorno per modificarlo, gestione dello schema ciclico |
 | **Diario** | Inserimento rapido del sonno, grafico settimanale, serie |
 | **Guide** | Mini-guide, guida ai pasti in turno |

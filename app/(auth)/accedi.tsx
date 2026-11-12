@@ -10,9 +10,10 @@ import { SocialSignIn } from '@/components/SocialSignIn';
 import { TextField } from '@/components/TextField';
 import it from '@/i18n/it';
 import { AuthError, signInWithEmail } from '@/lib/auth';
-import { colors } from '@/theme';
+import { useColors } from '@/theme';
 
 export default function Login() {
+  const colors = useColors();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);

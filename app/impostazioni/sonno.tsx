@@ -14,10 +14,11 @@ import { updateProfile } from '@/lib/profile';
 import { useSession, useUserId } from '@/lib/session';
 import { RULES } from '@/plan/rules';
 import { toClock } from '@/plan/time';
-import { colors } from '@/theme';
+import { useColors } from '@/theme';
 
 /** Profilo → Sonno e tragitto. */
 export default function SleepSettings() {
+  const colors = useColors();
   const userId = useUserId();
   const { profile, refreshProfile } = useSession();
   const [value, setValue] = useState<HabitsValue>({

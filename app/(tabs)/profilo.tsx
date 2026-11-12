@@ -3,8 +3,9 @@ import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Switch, View } from 'react-native';
+import { Alert, Pressable, View } from 'react-native';
 
+import { Toggle } from '@/components/Toggle';
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
 import { Screen } from '@/components/Screen';
@@ -19,11 +20,13 @@ import { notificationPrefs, openSystemSettings, requestPermission } from '@/lib/
 import { updateProfile } from '@/lib/profile';
 import { useSession, useUserId } from '@/lib/session';
 import { toClock } from '@/plan/time';
-import { colors, radius, spacing } from '@/theme';
+import { makeStyles, radius, spacing, useColors } from '@/theme';
 
 const NIGHT_OPTIONS: NightModePref[] = ['auto', 'on', 'off'];
 
 export default function Profile() {
+  const colors = useColors();
+  const styles = useStyles();
   const userId = useUserId();
   const { session, profile, refreshProfile } = useSession();
   const night = useNightMode();
@@ -82,12 +85,10 @@ export default function Profile() {
             <AppText variant="bodyMedium">{it.profile.notifications}</AppText>
             <AppText variant="caption">{it.profile.notificationsHint}</AppText>
           </View>
-          <Switch
+          <Toggle
             value={notifOn}
             disabled={savingNotif}
             onValueChange={toggleNotifications}
-            trackColor={{ true: colors.accent, false: colors.surfaceAlt }}
-            thumbColor="#FFFFFF"
             accessibilityLabel={it.profile.notifications}
           />
         </View>
@@ -122,6 +123,7 @@ export default function Profile() {
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  const styles = useStyles();
   return (
     <View style={styles.section}>
       <AppText variant="label" secondary>
@@ -133,6 +135,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 function Row(props: { icon: keyof typeof Ionicons.glyphMap; label: string; detail?: string; onPress: () => void }) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <Pressable onPress={props.onPress} style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]} accessibilityRole="button">
       <Ionicons name={props.icon} size={22} color={colors.text} />
@@ -145,9 +149,9 @@ function Row(props: { icon: keyof typeof Ionicons.glyphMap; label: string; detai
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   section: { gap: spacing.sm },
   box: { backgroundColor: colors.surface, borderRadius: radius.lg, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md },
   inner: { padding: spacing.md, gap: spacing.sm },
-});
+}));

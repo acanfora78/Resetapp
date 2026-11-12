@@ -16,10 +16,11 @@ import { useSession, useUserId } from '@/lib/session';
 import { fetchShiftTypes, saveShiftTypes, shiftHoursFromTypes } from '@/lib/shifts';
 import { WORK_SHIFT_CODES } from '@/plan/types';
 import type { WorkShiftCode } from '@/plan/types';
-import { colors } from '@/theme';
+import { useColors } from '@/theme';
 
 /** Profilo → Turni e orari. */
 export default function ShiftSettings() {
+  const colors = useColors();
   const userId = useUserId();
   const { profile, refreshProfile } = useSession();
   const { reload } = usePlanData();

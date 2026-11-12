@@ -1,7 +1,7 @@
 import * as WebBrowser from 'expo-web-browser';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
@@ -17,7 +17,7 @@ import { errorText } from '@/lib/errors';
 import { finalizeOnboarding } from '@/lib/finalizeOnboarding';
 import { useOnboardingDraft } from '@/lib/onboardingDraft';
 import { useSession } from '@/lib/session';
-import { colors, radius, spacing } from '@/theme';
+import { makeStyles, radius, spacing, useColors } from '@/theme';
 
 /**
  * Onboarding, passo 8: "Salva il tuo piano".
@@ -26,6 +26,8 @@ import { colors, radius, spacing } from '@/theme';
  * Subito dopo, i dati dell'onboarding vengono scritti su Supabase.
  */
 export default function SavePlan() {
+  const colors = useColors();
+  const styles = useStyles();
   const { session, userId, refreshProfile } = useSession();
   const { draft, update, reset } = useOnboardingDraft();
 
@@ -191,9 +193,9 @@ export default function SavePlan() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: spacing.md },
   consents: { gap: spacing.xs },
   links: { flexDirection: 'row', gap: spacing.lg, paddingLeft: 40 },
   disclaimer: { padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.surface },
-});
+}));

@@ -2,19 +2,21 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, StyleSheet, View } from 'react-native';
+import { Animated, Easing, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
 import { Screen } from '@/components/Screen';
 import { StepHeader } from '@/components/StepHeader';
 import it from '@/i18n/it';
-import { colors, spacing } from '@/theme';
+import { makeStyles, spacing, useColors } from '@/theme';
 
 const LINE_INTERVAL_MS = 700;
 const TOTAL_MS = 2700;
 
 /** Onboarding, passo 6: "Sto creando il tuo piano…". Senza tasto indietro. */
 export default function Loading() {
+  const colors = useColors();
+  const styles = useStyles();
   const spin = useRef(new Animated.Value(0)).current;
   const [done, setDone] = useState(0);
 
@@ -70,9 +72,9 @@ export default function Loading() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: spacing.lg },
   logo: { width: 120, height: 120 },
   lines: { gap: spacing.md, alignSelf: 'center' },
   line: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-});
+}));

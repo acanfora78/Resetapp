@@ -1,11 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { useEffect, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { Alert, View } from 'react-native';
 
 import it from '@/i18n/it';
 import { AuthCancelled, isAppleAvailable, signInWithApple, signInWithGoogle } from '@/lib/auth';
-import { colors, radius } from '@/theme';
+import { makeStyles, radius, useColors } from '@/theme';
 
 import { AppText } from './AppText';
 import { Button } from './Button';
@@ -19,6 +19,8 @@ interface Props {
 
 /** Pulsanti Accedi con Apple e Accedi con Google. */
 export function SocialSignIn({ disabled, onBeforeSignIn }: Props) {
+  const colors = useColors();
+  const styles = useStyles();
   const [appleAvailable, setAppleAvailable] = useState(false);
   const [busy, setBusy] = useState<'apple' | 'google' | null>(null);
 
@@ -72,10 +74,10 @@ export function SocialSignIn({ disabled, onBeforeSignIn }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   wrap: { gap: 12 },
   dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 4 },
   line: { flex: 1, height: 1, backgroundColor: colors.border },
   apple: { height: 54, width: '100%' },
   disabled: { opacity: 0.4 },
-});
+}));

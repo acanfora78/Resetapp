@@ -18,10 +18,11 @@ import { availableCodesFromTypes, disablePattern, fetchActivePattern, fetchShift
 import { fromISODate, toISODate } from '@/plan/cycle';
 import { PATTERN_PRESETS } from '@/plan/shiftSetup';
 import type { ShiftCode } from '@/plan/types';
-import { colors } from '@/theme';
+import { useColors } from '@/theme';
 
 /** Gestione dello schema ciclico dal Calendario. */
 export default function PatternScreen() {
+  const colors = useColors();
   const userId = useUserId();
   const { reload } = usePlanData();
   const [active, setActive] = useState<ShiftPatternRow | null>(null);

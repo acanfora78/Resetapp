@@ -1,8 +1,8 @@
-import { format, isSameDay } from 'date-fns';
+import { addDays, format, isSameDay } from 'date-fns';
 import { it as itLocale } from 'date-fns/locale';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText } from '@/components/AppText';
@@ -13,6 +13,7 @@ import it from '@/i18n/it';
 import { fetchCheckIds, setCheck } from '@/lib/checks';
 import { errorText } from '@/lib/errors';
 import { useNightMode } from '@/lib/nightMode';
+import { notificationCardState, snoozeNotificationCard } from '@/lib/notificationCard';
 import { notificationPrefs, openSystemSettings, requestPermission } from '@/lib/notifications';
 import { usePlanData } from '@/lib/planData';
 import { updateProfile } from '@/lib/profile';
@@ -20,15 +21,17 @@ import { useSession, useUserId } from '@/lib/session';
 import { planForDay } from '@/plan/context';
 import { toISODate } from '@/plan/cycle';
 import { capitalizeFirst } from '@/plan/time';
-import { currentPlanDay, nextPendingItem } from '@/plan/today';
+import { currentPlanDay, splitChecklist } from '@/plan/today';
 import { isWorkShift } from '@/plan/types';
 import type { PlanItemKey } from '@/plan/types';
-import { colors, radius, spacing } from '@/theme';
+import { makeStyles, radius, spacing, useColors } from '@/theme';
 
 const TICK_MS = 60_000;
 
 /** Oggi: turno del giorno e azioni del piano con spunta. */
 export default function Today() {
+  const colors = useColors();
+  const styles = useStyles();
   const userId = useUserId();
   const { profile, refreshProfile } = useSession();
   const { ctx, error, loading, reload, resync } = usePlanData();
@@ -94,7 +97,7 @@ export default function Today() {
   };
 
   const prefs = notificationPrefs(profile);
-  const askNotifications = prefs.abilitate === undefined;
+  const cardState = notificationCardState(prefs, now);
 
   const enableNotifications = async () => {
     const res = await requestPermission();
@@ -109,14 +112,23 @@ export default function Today() {
   };
 
   const skipNotifications = async () => {
-    await updateProfile(userId, { notifiche: { ...prefs, abilitate: false } });
+    await updateProfile(userId, { notifiche: { ...snoozeNotificationCard(prefs, new Date()) } });
     await refreshProfile();
   };
 
   const shift = ctx?.shiftOn(planDay) ?? null;
   const hours = ctx && shift && isWorkShift(shift) ? ctx.shiftHours[shift] : null;
-  const next = nextPendingItem(items, done, now);
-  const doneCount = items.filter((i) => done.has(i.key)).length;
+  const { next, pending, completed } = splitChecklist(items, done, now);
+  const doneCount = completed.length;
+
+  // Riga sotto il turno: il turno successivo al giorno del piano.
+  const followingDay = addDays(planDay, 1);
+  const followingLabel = isSameDay(followingDay, now) ? 'Oggi' : 'Domani';
+  const following = ctx?.shiftOn(followingDay) ?? null;
+  const followingHours =
+    ctx && following && isWorkShift(following)
+      ? `${ctx.shiftHours[following].start}–${ctx.shiftHours[following].end}`
+      : null;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -150,7 +162,7 @@ export default function Today() {
           <>
             <View style={[styles.card, styles.shiftRow]}>
               {shift ? <ShiftBadge code={shift} size={44} /> : null}
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 1, gap: 2 }}>
                 <AppText variant="heading">
                   {shift
                     ? (isYesterday ? (shift === 'N' ? it.today.nightShiftOf : it.today.yesterdayOf) : it.today.shiftOf)(
@@ -159,10 +171,25 @@ export default function Today() {
                     : it.today.noShift}
                 </AppText>
                 {hours ? <AppText secondary>{`${hours.start}–${hours.end}`}</AppText> : null}
+                <View style={styles.nextDay}>
+                  <View
+                    style={[
+                      styles.dot,
+                      { backgroundColor: following ? colors.shift[following] : colors.textMuted },
+                    ]}
+                  />
+                  <AppText variant="caption">
+                    {following
+                      ? it.today.nextDay(followingLabel, it.shifts.names[following], followingHours)
+                      : it.today.nextDayFree(followingLabel)}
+                  </AppText>
+                </View>
               </View>
+              {/* Spazio a destra riservato all'anello del punteggio di recupero (Fase 4). */}
+              <RecoveryScoreSlot />
             </View>
 
-            {askNotifications ? (
+            {cardState === 'full' ? (
               <View style={[styles.card, styles.notifCard]}>
                 <AppText variant="bodyMedium">🔔 {it.today.notifCard.title}</AppText>
                 <AppText variant="caption">{it.today.notifCard.body}</AppText>
@@ -170,6 +197,18 @@ export default function Today() {
                   <Button title={it.today.notifCard.enable} onPress={enableNotifications} style={{ flex: 1 }} />
                   <Button variant="ghost" title={it.today.notifCard.later} onPress={skipNotifications} style={{ flex: 1 }} />
                 </View>
+              </View>
+            ) : null}
+            {cardState === 'compact' ? (
+              <View style={[styles.card, styles.notifCompact]}>
+                <AppText variant="bodyMedium" style={{ flex: 1 }}>
+                  🔔 {it.today.notifCard.compact}
+                </AppText>
+                <Pressable onPress={enableNotifications} hitSlop={8} accessibilityRole="button" style={styles.compactBtn}>
+                  <AppText variant="label" color={colors.accent}>
+                    {it.today.notifCard.enable}
+                  </AppText>
+                </Pressable>
               </View>
             ) : null}
 
@@ -188,8 +227,7 @@ export default function Today() {
               </AppText>
             ) : null}
 
-            <PlanChecklist items={items} done={done} nextKey={next?.key ?? null} onToggle={toggle} />
-            <AppText variant="caption">{it.today.comingSoon}</AppText>
+            <PlanChecklist pending={pending} completed={completed} nextKey={next?.key ?? null} onToggle={toggle} />
           </>
         ) : null}
       </ScrollView>
@@ -197,16 +235,25 @@ export default function Today() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   safe: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   nightChip: { backgroundColor: colors.surfaceAlt, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 2 },
   card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md, gap: 4 },
   shiftRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  nextDay: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
+  dot: { width: 10, height: 10, borderRadius: 5 },
+  notifCompact: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm },
+  compactBtn: { minHeight: 44, justifyContent: 'center', paddingHorizontal: spacing.sm },
   notifCard: { gap: spacing.sm, borderWidth: 1, borderColor: colors.accent },
   notifButtons: { flexDirection: 'row', gap: spacing.sm },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.sm },
   track: { height: 6, borderRadius: radius.pill, backgroundColor: colors.surfaceAlt, overflow: 'hidden' },
   fill: { height: 6, borderRadius: radius.pill, backgroundColor: colors.accent },
-});
+}));
+
+/** Qui comparirà l'anello del punteggio di recupero quando sarà disponibile. */
+function RecoveryScoreSlot() {
+  return null;
+}

@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import type { PlanContext } from '../context';
 import { resolveShift } from '../cycle';
 import { DEFAULT_HOURS_8H } from '../shiftSetup';
-import { currentPlanDay, isNightShiftTime, nextPendingItem, notificationSchedule } from '../today';
+import { currentPlanDay, isNightShiftTime, nextPendingItem, notificationSchedule, splitChecklist } from '../today';
 import { planForDay } from '../context';
 
 const ctxWith = (sequenza: ('M' | 'P' | 'N' | 'S' | 'R')[], dataInizio: string): PlanContext => ({
@@ -92,5 +92,26 @@ describe('notificationSchedule', () => {
   it('identificativi unici', () => {
     const ids = notificationSchedule(ctx, now).map((r) => r.id);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+});
+
+describe('splitChecklist', () => {
+  const items = planForDay(ctx, at(10, 0));
+
+  it('la prossima azione è sempre in cima, le fatte vanno in fondo', () => {
+    const now = items[1]!.time;
+    const { next, pending, completed } = splitChecklist(items, new Set([items[1]!.key]), now);
+    expect(completed.map((i) => i.key)).toEqual([items[1]!.key]);
+    expect(pending[0]).toBe(next);
+    expect(next?.key).toBe(items[2]!.key);
+    // l'azione rimasta indietro resta da fare, dopo la prossima
+    expect(pending.map((i) => i.key)).toContain(items[0]!.key);
+    expect(pending.length + completed.length).toBe(items.length);
+  });
+
+  it('tutto fatto: nessuna prossima azione', () => {
+    const r = splitChecklist(items, new Set(items.map((i) => i.key)), at(10, 12));
+    expect(r.next).toBeNull();
+    expect(r.pending).toEqual([]);
   });
 });

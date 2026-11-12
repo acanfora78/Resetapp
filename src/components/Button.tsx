@@ -1,9 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import type { ReactNode } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 
-import { accentGradient, colors, fonts, radius } from '@/theme';
+import { accentGradientOf, fonts, makeStyles, radius, useColors } from '@/theme';
 
 import { AppText } from './AppText';
 
@@ -18,6 +18,8 @@ interface Props {
 }
 
 export function Button({ title, onPress, variant = 'primary', disabled, loading, icon, style }: Props) {
+  const colors = useColors();
+  const styles = useStyles();
   const isDisabled = disabled || loading;
   const textColor = isDisabled
     ? colors.disabledText
@@ -57,7 +59,7 @@ export function Button({ title, onPress, variant = 'primary', disabled, loading,
     >
       {variant === 'primary' && !isDisabled ? (
         <LinearGradient
-          colors={accentGradient}
+          colors={accentGradientOf(colors)}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.gradient}
@@ -71,7 +73,7 @@ export function Button({ title, onPress, variant = 'primary', disabled, loading,
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   base: { borderRadius: radius.pill, overflow: 'hidden', minHeight: 54 },
   gradient: { flex: 1, justifyContent: 'center' },
   secondary: {
@@ -91,4 +93,4 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   text: { fontFamily: fonts.semibold, fontSize: 16 },
-});
+}));

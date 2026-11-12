@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
@@ -12,10 +12,12 @@ import it from '@/i18n/it';
 import { draftPlanContext, useOnboardingDraft } from '@/lib/onboardingDraft';
 import { buildPreview } from '@/plan/context';
 import { isWorkShift } from '@/plan/types';
-import { colors, radius, shiftColors, spacing } from '@/theme';
+import { makeStyles, radius, spacing, useColors } from '@/theme';
 
 /** Onboarding, passo 7: anteprima del piano di domani, calcolata dai dati appena inseriti. */
 export default function Preview() {
+  const colors = useColors();
+  const styles = useStyles();
   const { draft } = useOnboardingDraft();
   const preview = useMemo(() => buildPreview(draftPlanContext(draft), new Date()), [draft]);
 
@@ -27,7 +29,7 @@ export default function Preview() {
     <Screen footer={<Button title={it.common.continue} onPress={() => router.push('/salva')} />}>
       <StepHeader step={7} title={it.onboarding.preview.title} />
 
-      <View style={[styles.header, shift && { borderColor: shiftColors[shift] }]}>
+      <View style={[styles.header, shift && { borderColor: colors.shift[shift] }]}>
         {shift ? <ShiftBadge code={shift} size={44} /> : null}
         <AppText variant="heading" style={{ flex: 1 }}>
           {it.onboarding.preview.header(name, hours)}
@@ -52,7 +54,7 @@ export default function Preview() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -63,4 +65,4 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     padding: spacing.md,
   },
-});
+}));

@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { Animated, Text, View } from 'react-native';
 
-import it from '@/i18n/it';
+import { planText } from '@/i18n/planText';
 import { formatClock } from '@/plan/time';
 import type { PlanItem } from '@/plan/types';
-import { colors, radius, spacing } from '@/theme';
+import { makeStyles, radius, spacing, useColors } from '@/theme';
 
 import { AppText } from './AppText';
 import { planItemStyle } from './planStyle';
@@ -28,6 +28,8 @@ export function PlanTimeline({ items, startIndex = 0 }: { items: PlanItem[]; sta
 }
 
 function TimelineRow({ item, index, isLast }: { item: PlanItem; index: number; isLast: boolean }) {
+  const colors = useColors();
+  const styles = useStyles();
   const anim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.timing(anim, {
@@ -39,7 +41,7 @@ function TimelineRow({ item, index, isLast }: { item: PlanItem; index: number; i
   }, [anim, index]);
 
   const style = planItemStyle(item.key);
-  const s = it.plan.items[item.key];
+  const s = planText(item);
 
   return (
     <Animated.View
@@ -69,7 +71,7 @@ function TimelineRow({ item, index, isLast }: { item: PlanItem; index: number; i
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: { flexDirection: 'row', gap: spacing.sm },
   rail: { width: 16, alignItems: 'center' },
   dot: { width: 12, height: 12, borderRadius: 6, marginTop: 20, borderWidth: 2, borderColor: colors.background },
@@ -85,4 +87,4 @@ const styles = StyleSheet.create({
   },
   icon: { fontSize: 22, marginTop: 2 },
   texts: { flex: 1, gap: 2 },
-});
+}));

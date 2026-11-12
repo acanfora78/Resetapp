@@ -8,7 +8,7 @@ import type { PlanContext } from './context';
 import { toISODate } from './cycle';
 import { RULES } from './rules';
 import { shiftWindow } from './time';
-import type { PlanItem, PlanItemKey } from './types';
+import type { DayContext, PlanItem, PlanItemKey } from './types';
 
 /**
  * Il giorno del piano da mostrare adesso. Di solito è oggi; resta "ieri" finché
@@ -53,6 +53,7 @@ export interface ScheduledReminder {
   id: string;
   planDay: string;
   key: PlanItemKey;
+  context: DayContext;
   date: Date;
 }
 
@@ -75,8 +76,26 @@ export function notificationSchedule(
     for (const item of planForDay(ctx, day)) {
       const id = `${planDay}_${item.key}`;
       if (!item.notify || item.time <= now || doneIds.has(id)) continue;
-      out.push({ id, planDay, key: item.key, date: item.time });
+      out.push({ id, planDay, key: item.key, context: item.context, date: item.time });
     }
   }
   return out.sort((a, b) => a.date.getTime() - b.date.getTime()).slice(0, max);
+}
+
+/**
+ * Ordine della lista di Oggi: in cima la prossima azione da fare, poi le altre
+ * da fare in ordine di orario; le azioni fatte vanno nel gruppo "Fatte".
+ */
+export function splitChecklist(
+  items: PlanItem[],
+  done: ReadonlySet<PlanItemKey>,
+  now: Date,
+): { next: PlanItem | null; pending: PlanItem[]; completed: PlanItem[] } {
+  const next = nextPendingItem(items, done, now);
+  const rest = items.filter((i) => !done.has(i.key) && i !== next);
+  return {
+    next,
+    pending: next ? [next, ...rest] : rest,
+    completed: items.filter((i) => done.has(i.key)),
+  };
 }
