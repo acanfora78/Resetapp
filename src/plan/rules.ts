@@ -57,6 +57,20 @@ export const RULES = {
 
   /** Se due azioni cadono alla stessa ora, la seconda viene spostata di tot minuti. */
   COLLISION_SHIFT_MIN: 15,
+
+  /**
+   * Schermata Oggi: il piano di ieri resta visibile fino a tot minuti dopo la sua
+   * ultima azione (es. turno di notte in corso dopo mezzanotte), se il piano di oggi
+   * non è ancora cominciato.
+   */
+  PLAN_DAY_GRACE_MIN: 60,
+
+  /** Modalità notte automatica: da inizio turno di notte fino a rientro + routine + tot minuti. */
+  NIGHT_MODE_AFTER_HOMECOMING_MIN: 30,
+
+  /** Notifiche: giorni programmati in avanti e massimo di notifiche in attesa (limite iOS: 64). */
+  NOTIFICATION_DAYS_AHEAD: 7,
+  NOTIFICATION_MAX_PENDING: 60,
 } as const;
 
 /** Quali azioni vanno notificate. */

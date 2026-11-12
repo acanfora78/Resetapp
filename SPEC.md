@@ -43,7 +43,7 @@ Reset aiuta chi lavora su turni a rotazione con le notti a dormire abbastanza e 
 2. **Turni ciclici automatici:** l'utente imposta il suo schema una volta (es. M-P-N-S-R) e una data di partenza. L'app genera i turni dei mesi successivi. Ogni giorno resta modificabile a mano, e la modifica manuale non viene sovrascritta dallo schema.
 3. **Piano automatico:** per ogni giorno, le azioni con orario (vedi sezione 4).
 4. **Diario del sonno:** ora a letto, ora di sveglia, energia da 1 a 5, nota facoltativa. Deve richiedere al massimo 10 secondi.
-5. **Notifiche:** promemoria delle azioni del piano.
+5. **Notifiche:** promemoria locali delle azioni del piano per i 7 giorni successivi (massimo 60 in attesa, limite iOS), riprogrammati a ogni modifica di turni, orari, preferenze o spunte; le azioni già spuntate non vengono notificate. Il permesso si chiede con la card "Attiva i promemoria" nella schermata Oggi (o dal Profilo), mai a sorpresa. Preferenza salvata in `profiles.notifiche` (`{ "abilitate": true/false }`).
 6. **Statistiche:** grafico settimanale di ore dormite ed energia.
 
 ### Recupero
@@ -53,7 +53,7 @@ Reset aiuta chi lavora su turni a rotazione con le notti a dormire abbastanza e 
 10. **Allerta guida dopo la notte:** notifica a fine turno di notte con consigli di sicurezza prima di guidare.
 
 ### Organizzazione
-11. **Modalità notte:** interfaccia più scura e poco luminosa, attivata in automatico durante i turni di notte o a mano.
+11. **Modalità notte:** interfaccia più scura e poco luminosa, attivata in automatico durante i turni di notte (dall'inizio del turno fino a rientro + routine post-notte + 30 min) o a mano. Nel Profilo: Automatica / Sempre / Mai (preferenza del dispositivo).
 12. **Widget per la schermata home:** mostra la prossima azione del piano. **Rimandato all'aggiornamento dopo il lancio.**
 
 ### Contenuti e motivazione
@@ -74,6 +74,8 @@ Il piano si calcola **sul dispositivo** a partire da:
 - fabbisogno di sonno (default 7,5 ore, modificabile).
 
 Il piano non si salva sul server. Si salvano solo le azioni completate (tabella `plan_checks`).
+
+Il "piano del giorno D" va dalla sveglia del giorno D fino all'ora di andare a letto quella sera (anche dopo mezzanotte); per un turno di notte arriva al rientro a casa la mattina dopo. La schermata Oggi mostra il piano di ieri finché non è finito (fino a 60 min dopo la sua ultima azione) e quello di oggi non è cominciato: così durante la notte resta visibile il piano del turno in corso.
 
 Tutti gli orari sono configurabili come costanti in un unico file (es. `src/plan/rules.ts`), così le regole si possono correggere dopo la validazione di un esperto senza toccare il resto del codice.
 

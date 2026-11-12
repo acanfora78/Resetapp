@@ -185,10 +185,34 @@ export const it = {
   today: {
     greeting: (nome: string | null) => (nome ? `Ciao ${nome}` : 'Ciao'),
     shiftOf: (shiftName: string) => `Oggi: ${shiftName}`,
+    nightShiftOf: (shiftName: string) => `Stanotte: ${shiftName}`,
     noShift: 'Oggi non hai turni inseriti.',
     planTitle: 'Il tuo piano di oggi',
-    comingSoon: 'Spunte, punteggio di recupero e notifiche arrivano nel prossimo aggiornamento.',
+    nightPlanTitle: 'Il piano della notte',
+    eveningPlanTitle: 'Il piano di ieri sera',
+    yesterdayOf: (shiftName: string) => `Ieri: ${shiftName}`,
+    progress: (done: number, total: number) => `${done} di ${total} fatte`,
+    allDone: 'Tutto fatto. Ottimo lavoro.',
+    next: 'Prossima',
+    markDone: (title: string) => `Segna come fatta: ${title}`,
+    markUndone: (title: string) => `Segna come da fare: ${title}`,
+    comingSoon: 'Punteggio di recupero e serie arrivano nel prossimo aggiornamento.',
     loadError: 'Non riesco a caricare il piano.',
+    tapToRetry: 'Tocca per riprovare.',
+    nightModeOn: 'Modalità notte attiva',
+    notifCard: {
+      title: 'Attiva i promemoria',
+      body: 'Ti avviso quando è ora di dormire, staccare dalla caffeina o fare il pisolino.',
+      enable: 'Attiva',
+      later: 'Non ora',
+    },
+  },
+
+  notifications: {
+    channelName: 'Piano del giorno',
+    deniedTitle: 'Notifiche bloccate',
+    deniedBody: 'Per ricevere i promemoria, attiva le notifiche di Reset nelle Impostazioni dell’iPhone.',
+    openSettings: 'Apri Impostazioni',
   },
 
   placeholder: {
@@ -226,6 +250,30 @@ export const it = {
   profile: {
     signOut: 'Esci',
     signedInAs: (email: string) => `Accesso come ${email}`,
+    sections: {
+      plan: 'Il tuo piano',
+      reminders: 'Promemoria',
+      nightMode: 'Modalità notte',
+      info: 'Informazioni',
+    },
+    shifts: 'Turni e orari',
+    sleep: 'Sonno e tragitto',
+    sleepSummary: (wake: string, commute: number, need: string) => `Sveglia ${wake} · ${commute} min · ${need}`,
+    notifications: 'Notifiche del piano',
+    notificationsHint: 'Promemoria per sonno, luce, caffeina e pisolini.',
+    nightModeOptions: { auto: 'Automatica', on: 'Sempre', off: 'Mai' },
+    nightModeHint: 'Automatica: si attiva durante i turni di notte, fino al rientro a casa.',
+    terms: 'Termini di servizio',
+    privacy: 'Informativa privacy',
+    disclaimer: 'Reset offre contenuti educativi su abitudini e organizzazione. Non è un dispositivo medico e non sostituisce il parere di un medico.',
+    version: (v: string) => `Versione ${v}`,
+  },
+
+  settings: {
+    shiftsTitle: 'Turni e orari',
+    sleepTitle: 'Sonno e tragitto',
+    save: 'Salva',
+    saved: 'Salvato. Il piano e i promemoria sono aggiornati.',
   },
 
   plan: {

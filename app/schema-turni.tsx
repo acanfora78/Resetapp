@@ -12,6 +12,7 @@ import { Screen } from '@/components/Screen';
 import it from '@/i18n/it';
 import { errorText } from '@/lib/errors';
 import type { ShiftPatternRow } from '@/lib/database.types';
+import { usePlanData } from '@/lib/planData';
 import { useUserId } from '@/lib/session';
 import { availableCodesFromTypes, disablePattern, fetchActivePattern, fetchShiftTypes, savePattern } from '@/lib/shifts';
 import { fromISODate, toISODate } from '@/plan/cycle';
@@ -22,6 +23,7 @@ import { colors } from '@/theme';
 /** Gestione dello schema ciclico dal Calendario. */
 export default function PatternScreen() {
   const userId = useUserId();
+  const { reload } = usePlanData();
   const [active, setActive] = useState<ShiftPatternRow | null>(null);
   const [sequence, setSequence] = useState<ShiftCode[]>([...PATTERN_PRESETS[0]!]);
   const [startDate, setStartDate] = useState(startOfDay(addDays(new Date(), 1)));
@@ -50,6 +52,7 @@ export default function PatternScreen() {
     setSaving(true);
     try {
       await savePattern(userId, sequence, toISODate(startDate));
+      reload(); // piano e promemoria aggiornati
       router.back();
     } catch (e) {
       Alert.alert(it.common.error, errorText(e));
@@ -67,6 +70,7 @@ export default function PatternScreen() {
           setSaving(true);
           try {
             await disablePattern();
+            reload();
             router.back();
           } catch (e) {
             Alert.alert(it.common.error, errorText(e));

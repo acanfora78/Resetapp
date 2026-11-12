@@ -17,11 +17,11 @@ import {
 export { planForDay } from '@/plan/context';
 export type { PlanContext } from '@/plan/context';
 
-/** Carica turni, schema e orari intorno al giorno indicato. */
+/** Carica turni, schema e orari da due giorni prima fino ai giorni coperti dalle notifiche. */
 export async function loadPlanContext(profile: ProfileRow, around: Date): Promise<PlanContext> {
   const [types, shifts, pattern] = await Promise.all([
     fetchShiftTypes(),
-    fetchShifts(toISODate(addDays(around, -2)), toISODate(addDays(around, 3))),
+    fetchShifts(toISODate(addDays(around, -2)), toISODate(addDays(around, RULES.NOTIFICATION_DAYS_AHEAD + 2))),
     fetchActivePattern(),
   ]);
   const stored = new Map(shifts.map((s) => [s.data, s.codice]));

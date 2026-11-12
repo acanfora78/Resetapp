@@ -11,7 +11,9 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { NightDimmer, NightModeProvider } from '@/lib/nightMode';
 import { OnboardingDraftProvider } from '@/lib/onboardingDraft';
+import { PlanDataProvider } from '@/lib/planData';
 import { SessionProvider, useSession } from '@/lib/session';
 import { colors } from '@/theme';
 
@@ -57,6 +59,8 @@ function RootNavigator() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="giorno/[data]" options={{ presentation: 'modal' }} />
         <Stack.Screen name="schema-turni" />
+        <Stack.Screen name="impostazioni/turni" />
+        <Stack.Screen name="impostazioni/sonno" />
       </Stack.Protected>
     </Stack>
   );
@@ -77,8 +81,13 @@ export default function RootLayout() {
       <ThemeProvider value={navTheme}>
         <SessionProvider>
           <OnboardingDraftProvider>
-            <StatusBar style="light" />
-            <RootNavigator />
+            <PlanDataProvider>
+              <NightModeProvider>
+                <StatusBar style="light" />
+                <RootNavigator />
+                <NightDimmer />
+              </NightModeProvider>
+            </PlanDataProvider>
           </OnboardingDraftProvider>
         </SessionProvider>
       </ThemeProvider>

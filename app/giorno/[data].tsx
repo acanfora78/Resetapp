@@ -11,6 +11,7 @@ import { ShiftBadge } from '@/components/ShiftBadge';
 import it from '@/i18n/it';
 import { errorText } from '@/lib/errors';
 import type { ShiftPatternRow, ShiftRow } from '@/lib/database.types';
+import { usePlanData } from '@/lib/planData';
 import { useUserId } from '@/lib/session';
 import {
   availableCodesFromTypes,
@@ -32,6 +33,7 @@ import { colors, radius, spacing } from '@/theme';
 /** Modifica del turno di un singolo giorno. */
 export default function DayEditor() {
   const userId = useUserId();
+  const { reload } = usePlanData();
   const { data } = useLocalSearchParams<{ data: string }>();
   const date = fromISODate(data);
 
@@ -60,6 +62,7 @@ export default function DayEditor() {
     setSaving(true);
     try {
       await fn();
+      reload(); // piano e promemoria aggiornati
       router.back();
     } catch (e) {
       Alert.alert(it.common.error, errorText(e));

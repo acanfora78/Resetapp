@@ -9,6 +9,8 @@ import { atClock, capitalizeFirst, formatClock } from '@/plan/time';
 import type { ClockTime } from '@/plan/types';
 import { colors, radius, spacing } from '@/theme';
 
+import { NightDimmer } from '@/lib/nightMode';
+
 import { AppText } from './AppText';
 import { Button } from './Button';
 
@@ -85,6 +87,7 @@ export function PickerField(props: Props) {
                 }}
               />
             </Pressable>
+            <NightDimmer />
           </Pressable>
         </Modal>
       ) : null}

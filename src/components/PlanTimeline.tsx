@@ -3,43 +3,11 @@ import { Animated, StyleSheet, Text, View } from 'react-native';
 
 import it from '@/i18n/it';
 import { formatClock } from '@/plan/time';
-import type { PlanItem, PlanItemKey } from '@/plan/types';
+import type { PlanItem } from '@/plan/types';
 import { colors, radius, spacing } from '@/theme';
 
 import { AppText } from './AppText';
-
-type Category = 'sleep' | 'light' | 'caffeine' | 'nap' | 'meal' | 'move' | 'safety';
-
-const CATEGORY: Record<PlanItemKey, Category> = {
-  wake: 'light',
-  wake_bright_light: 'light',
-  wake_morning_light: 'light',
-  bedtime: 'sleep',
-  low_light: 'sleep',
-  caffeine_stop: 'caffeine',
-  nap_short: 'nap',
-  shift_break: 'meal',
-  nap_pre_night: 'nap',
-  night_bright_light: 'light',
-  night_caffeine_stop: 'caffeine',
-  night_light_meal: 'meal',
-  drive_alert: 'safety',
-  post_night_routine: 'sleep',
-  day_sleep: 'sleep',
-  short_sleep: 'sleep',
-  natural_light: 'light',
-  light_activity: 'move',
-};
-
-const STYLE: Record<Category, { icon: string; color: string }> = {
-  sleep: { icon: '🌙', color: '#7B8CFF' },
-  light: { icon: '☀️', color: '#FFB43A' },
-  caffeine: { icon: '☕', color: '#C9925B' },
-  nap: { icon: '😴', color: '#4FC3B8' },
-  meal: { icon: '🍽️', color: '#FF8A3D' },
-  move: { icon: '🚶', color: '#6BD48F' },
-  safety: { icon: '🚗', color: '#FF6B6B' },
-};
+import { planItemStyle } from './planStyle';
 
 const STAGGER_MS = 80;
 
@@ -70,7 +38,7 @@ function TimelineRow({ item, index, isLast }: { item: PlanItem; index: number; i
     }).start();
   }, [anim, index]);
 
-  const style = STYLE[CATEGORY[item.key]];
+  const style = planItemStyle(item.key);
   const s = it.plan.items[item.key];
 
   return (
