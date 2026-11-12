@@ -9,6 +9,7 @@ import { PATTERN_PRESETS } from '@/components/SequenceEditor';
 import { Screen } from '@/components/Screen';
 import { StepHeader } from '@/components/StepHeader';
 import it from '@/i18n/it';
+import { errorText } from '@/lib/errors';
 import { useUserId } from '@/lib/session';
 import { savePattern } from '@/lib/shifts';
 import { toISODate } from '@/plan/cycle';
@@ -27,8 +28,8 @@ export default function Pattern() {
     try {
       await savePattern(userId, sequence, toISODate(startDate));
       router.push('/abitudini');
-    } catch {
-      Alert.alert(it.common.error, it.common.retry);
+    } catch (e) {
+      Alert.alert(it.common.error, errorText(e));
     } finally {
       setSaving(false);
     }

@@ -9,6 +9,7 @@ import { Screen } from '@/components/Screen';
 import { ShiftBadge } from '@/components/ShiftBadge';
 import { StepHeader } from '@/components/StepHeader';
 import it from '@/i18n/it';
+import { errorText } from '@/lib/errors';
 import { useUserId } from '@/lib/session';
 import { DEFAULT_SHIFT_HOURS, fetchShiftTypes, saveShiftTypes, shiftHoursFromTypes } from '@/lib/shifts';
 import type { ShiftHoursMap, WorkShiftCode } from '@/plan/types';
@@ -36,8 +37,8 @@ export default function Hours() {
     try {
       await saveShiftTypes(userId, hours);
       router.push('/schema');
-    } catch {
-      Alert.alert(it.common.error, it.common.retry);
+    } catch (e) {
+      Alert.alert(it.common.error, errorText(e));
     } finally {
       setSaving(false);
     }

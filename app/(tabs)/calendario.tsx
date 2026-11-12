@@ -20,6 +20,7 @@ import { Button } from '@/components/Button';
 import { Screen } from '@/components/Screen';
 import { ShiftBadge } from '@/components/ShiftBadge';
 import it from '@/i18n/it';
+import { errorText } from '@/lib/errors';
 import type { ShiftRow } from '@/lib/database.types';
 import { fetchActivePattern, fetchShifts, generateRange, toCyclePattern } from '@/lib/shifts';
 import { toISODate } from '@/plan/cycle';
@@ -32,6 +33,7 @@ export default function Calendar() {
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
   const [shifts, setShifts] = useState<Map<string, ShiftRow>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const requestId = useRef(0);
 
   const gridStart = startOfWeek(startOfMonth(month), WEEK);
@@ -40,6 +42,7 @@ export default function Calendar() {
   const load = useCallback(async () => {
     const id = ++requestId.current;
     setLoading(true);
+    setError(null);
     try {
       // Se c'è uno schema attivo, completa i turni mancanti del mese mostrato.
       const pattern = await fetchActivePattern();
@@ -48,6 +51,7 @@ export default function Calendar() {
       if (id === requestId.current) setShifts(new Map(rows.map((r) => [r.data, r])));
     } catch (e) {
       console.warn('Calendario non caricato', e);
+      if (id === requestId.current) setError(errorText(e));
     } finally {
       if (id === requestId.current) setLoading(false);
     }
@@ -116,6 +120,14 @@ export default function Calendar() {
       </View>
 
       {loading ? <ActivityIndicator color={colors.accent} /> : null}
+      {error ? (
+        <Pressable onPress={load} style={styles.error}>
+          <AppText variant="label" color={colors.danger}>
+            {it.calendar.loadError}
+          </AppText>
+          <AppText variant="caption">{error}</AppText>
+        </Pressable>
+      ) : null}
 
       <View style={styles.legend}>
         {SHIFT_CODES.map((c) => (
@@ -157,6 +169,7 @@ const styles = StyleSheet.create({
   today: { borderWidth: 1.5, borderColor: colors.accent },
   manualDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.accent },
   dotSpacer: { width: 6, height: 6 },
+  error: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, gap: 4 },
   legend: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginTop: spacing.sm },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
 });

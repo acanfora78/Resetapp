@@ -10,6 +10,7 @@ import { Screen } from '@/components/Screen';
 import { StepHeader } from '@/components/StepHeader';
 import { LEGAL_LINKS } from '@/content/legal';
 import it from '@/i18n/it';
+import { errorText } from '@/lib/errors';
 import { updateProfile } from '@/lib/profile';
 import { useSession, useUserId } from '@/lib/session';
 import { colors, radius, spacing } from '@/theme';
@@ -32,8 +33,8 @@ export default function Consent() {
       });
       await refreshProfile();
       router.push('/lavoro');
-    } catch {
-      Alert.alert(it.common.error, it.common.retry);
+    } catch (e) {
+      Alert.alert(it.common.error, errorText(e));
     } finally {
       setSaving(false);
     }

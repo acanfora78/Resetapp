@@ -142,6 +142,15 @@ export const it = {
     profile: 'Profilo',
   },
 
+  today: {
+    greeting: (nome: string | null) => (nome ? `Ciao ${nome}` : 'Ciao'),
+    shiftOf: (shiftName: string) => `Oggi: ${shiftName}`,
+    noShift: 'Oggi non hai turni inseriti.',
+    planTitle: 'Il tuo piano di oggi',
+    comingSoon: 'Spunte, punteggio di recupero e notifiche arrivano nel prossimo aggiornamento.',
+    loadError: 'Non riesco a caricare il piano.',
+  },
+
   placeholder: {
     comingSoon: 'In arrivo nei prossimi aggiornamenti.',
   },
@@ -152,6 +161,7 @@ export const it = {
     manualLegend: 'Modificato a mano',
     weekdays: ['L', 'M', 'M', 'G', 'V', 'S', 'D'],
     today: 'Oggi',
+    loadError: 'Non riesco a caricare i turni.',
   },
 
   day: {
@@ -180,7 +190,7 @@ export const it = {
 
   plan: {
     items: {
-      wake: { title: 'Sveglia', why: 'Un orario fisso aiuta il corpo a prepararsi al turno.' },
+      wake: { title: 'Sveglia', why: 'Un orario regolare aiuta il corpo a tenere il ritmo.' },
       bedtime: { title: 'A letto', why: 'Così dormi abbastanza prima del prossimo impegno.' },
       bright_light: { title: 'Luce forte entro 30 minuti', why: 'La luce del mattino dice al corpo che la giornata è iniziata.' },
       morning_light: { title: 'Luce al mattino', why: 'Esci o apri le finestre: tiene il ritmo regolare.' },

@@ -60,3 +60,15 @@ export function shiftsToWrite(generated: GeneratedShift[], stored: StoredShift[]
     return s.codice !== g.codice;
   });
 }
+
+/**
+ * Turno di un giorno: vince quello salvato (manuale o generato);
+ * se manca, si usa quello previsto dallo schema attivo.
+ */
+export function resolveShift(
+  stored: ReadonlyMap<string, ShiftCode>,
+  pattern: CyclePattern | null,
+  date: Date,
+): ShiftCode | null {
+  return stored.get(toISODate(date)) ?? (pattern ? shiftFromPattern(pattern, date) : null);
+}

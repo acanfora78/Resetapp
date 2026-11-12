@@ -9,6 +9,7 @@ import { Button } from '@/components/Button';
 import { Screen } from '@/components/Screen';
 import { ShiftBadge } from '@/components/ShiftBadge';
 import it from '@/i18n/it';
+import { errorText } from '@/lib/errors';
 import type { ShiftPatternRow, ShiftRow } from '@/lib/database.types';
 import { useUserId } from '@/lib/session';
 import {
@@ -46,7 +47,7 @@ export default function DayEditor() {
         setPattern(p);
         setHours(shiftHoursFromTypes(types));
       })
-      .catch(() => Alert.alert(it.common.error))
+      .catch((e) => Alert.alert(it.common.error, errorText(e)))
       .finally(() => setLoading(false));
   }, [data]);
 
@@ -57,8 +58,8 @@ export default function DayEditor() {
     try {
       await fn();
       router.back();
-    } catch {
-      Alert.alert(it.common.error, it.common.retry);
+    } catch (e) {
+      Alert.alert(it.common.error, errorText(e));
       setSaving(false);
     }
   };

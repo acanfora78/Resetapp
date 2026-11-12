@@ -8,6 +8,7 @@ import { Screen } from '@/components/Screen';
 import { StepHeader } from '@/components/StepHeader';
 import { TextField } from '@/components/TextField';
 import it from '@/i18n/it';
+import { errorText } from '@/lib/errors';
 import { updateProfile } from '@/lib/profile';
 import { useSession, useUserId } from '@/lib/session';
 
@@ -34,8 +35,8 @@ export default function Job() {
       await updateProfile(userId, { lavoro, nome: nome.trim() || null });
       await refreshProfile();
       router.push('/orari');
-    } catch {
-      Alert.alert(it.common.error, it.common.retry);
+    } catch (e) {
+      Alert.alert(it.common.error, errorText(e));
     } finally {
       setSaving(false);
     }

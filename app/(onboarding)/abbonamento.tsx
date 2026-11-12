@@ -6,6 +6,7 @@ import { Button } from '@/components/Button';
 import { Screen } from '@/components/Screen';
 import { StepHeader } from '@/components/StepHeader';
 import it from '@/i18n/it';
+import { errorText } from '@/lib/errors';
 import { updateProfile } from '@/lib/profile';
 import { useSession, useUserId } from '@/lib/session';
 import { colors, radius, spacing } from '@/theme';
@@ -21,8 +22,8 @@ export default function Paywall() {
     try {
       await updateProfile(userId, { onboarding_completato_at: new Date().toISOString() });
       await refreshProfile(); // il navigatore passa automaticamente all'app
-    } catch {
-      Alert.alert(it.common.error, it.common.retry);
+    } catch (e) {
+      Alert.alert(it.common.error, errorText(e));
       setSaving(false);
     }
   };

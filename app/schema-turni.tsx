@@ -11,6 +11,7 @@ import { PatternForm } from '@/components/PatternForm';
 import { Screen } from '@/components/Screen';
 import { PATTERN_PRESETS } from '@/components/SequenceEditor';
 import it from '@/i18n/it';
+import { errorText } from '@/lib/errors';
 import type { ShiftPatternRow } from '@/lib/database.types';
 import { useUserId } from '@/lib/session';
 import { disablePattern, fetchActivePattern, savePattern } from '@/lib/shifts';
@@ -46,8 +47,8 @@ export default function PatternScreen() {
     try {
       await savePattern(userId, sequence, toISODate(startDate));
       router.back();
-    } catch {
-      Alert.alert(it.common.error, it.common.retry);
+    } catch (e) {
+      Alert.alert(it.common.error, errorText(e));
       setSaving(false);
     }
   };
@@ -63,8 +64,8 @@ export default function PatternScreen() {
           try {
             await disablePattern();
             router.back();
-          } catch {
-            Alert.alert(it.common.error, it.common.retry);
+          } catch (e) {
+            Alert.alert(it.common.error, errorText(e));
             setSaving(false);
           }
         },

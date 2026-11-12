@@ -1,4 +1,4 @@
-import { generateShifts, shiftFromPattern, shiftsToWrite } from '../cycle';
+import { generateShifts, resolveShift, shiftFromPattern, shiftsToWrite } from '../cycle';
 import type { CyclePattern } from '../cycle';
 
 const pattern: CyclePattern = { sequenza: ['M', 'P', 'N', 'S', 'R'], dataInizio: '2026-03-01' };
@@ -56,5 +56,21 @@ describe('shiftsToWrite', () => {
       { data: '2026-03-03', codice: 'N' },
       { data: '2026-03-04', codice: 'S' },
     ]);
+  });
+});
+
+describe('resolveShift', () => {
+  const stored = new Map([['2026-03-02', 'R' as const]]);
+
+  it('usa il turno salvato quando c’è', () => {
+    expect(resolveShift(stored, pattern, new Date(2026, 2, 2))).toBe('R');
+  });
+
+  it('altrimenti usa lo schema', () => {
+    expect(resolveShift(stored, pattern, new Date(2026, 2, 3))).toBe('N');
+  });
+
+  it('senza schema e senza turno salvato restituisce null', () => {
+    expect(resolveShift(stored, null, new Date(2026, 2, 3))).toBeNull();
   });
 });
