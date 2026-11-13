@@ -71,7 +71,34 @@ export const RULES = {
   /** Notifiche: giorni programmati in avanti e massimo di notifiche in attesa (limite iOS: 64). */
   NOTIFICATION_DAYS_AHEAD: 7,
   NOTIFICATION_MAX_PENDING: 60,
+
+  // --- Transizioni tra turni -------------------------------------------------
+  /** Spostamento massimo del sonno in un giorno durante una transizione. */
+  TRANSITION_MAX_SHIFT_MIN: 90,
+  /** Giorni in avanti in cui cercare transizioni. */
+  TRANSITION_LOOKAHEAD_DAYS: 7,
+  /** La card "Cambio turno in arrivo" compare quando la transizione è entro tot giorni. */
+  TRANSITION_CARD_DAYS: 3,
+  /** Promemoria della transizione: la sera prima, a quest'ora. */
+  TRANSITION_NOTIFY_TIME: '19:00',
+
+  // --- Caffeina (stime educative) ---------------------------------------------
+  /** Emivita della caffeina, in ore. */
+  CAFFEINE_HALF_LIFE_H: 5,
+  /** Sotto questa quantità stimata (mg) la caffeina non dovrebbe disturbare il sonno. */
+  CAFFEINE_SLEEP_THRESHOLD_MG: 50,
+  /** Ore mostrate nel grafico. */
+  CAFFEINE_CHART_HOURS: 24,
 } as const;
+
+/** Porzioni di caffeina (mg) per tipo di bevanda: valori indicativi, modificabili. */
+export const CAFFEINE_DOSES_MG = {
+  espresso: 65,
+  moka: 100,
+  energy: 80,
+  te_cola: 40,
+} as const;
+export type CaffeineType = keyof typeof CAFFEINE_DOSES_MG;
 
 /** Quali azioni vanno notificate. */
 export const NOTIFY: Record<PlanItemKey, boolean> = {

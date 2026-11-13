@@ -18,6 +18,7 @@ export function planForDay(ctx: PlanContext, day: Date): PlanItem[] {
     prevShift: ctx.shiftOn(addDays(day, -1)),
     shift: ctx.shiftOn(day),
     nextShift: ctx.shiftOn(addDays(day, 1)),
+    shiftAfterNext: ctx.shiftOn(addDays(day, 2)),
     shiftHours: ctx.shiftHours,
     commuteMin: ctx.commuteMin,
     preferredWake: ctx.preferredWake,

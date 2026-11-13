@@ -2,6 +2,7 @@
  * Tipi delle tabelle Supabase (scritti a mano, allineati a supabase/migrations).
  * In futuro si possono rigenerare con `supabase gen types typescript`.
  */
+import type { CaffeineType } from '@/plan/rules';
 import type { ShiftCode, ShiftMode } from '@/plan/types';
 
 type Table<Row, Insert = Partial<Row>, Update = Partial<Row>> = {
@@ -80,6 +81,15 @@ export type DailyScoreRow = {
   punteggio: number;
 };
 
+export type CaffeineLogRow = {
+  id: string;
+  user_id: string;
+  consumato_at: string;
+  tipo: CaffeineType;
+  quantita_mg: number;
+  created_at: string;
+};
+
 export type SubscriptionRow = {
   user_id: string;
   piattaforma: 'ios' | 'android';
@@ -104,6 +114,7 @@ export type Database = {
       plan_checks: Table<PlanCheckRow>;
       daily_scores: Table<DailyScoreRow>;
       subscriptions: Table<SubscriptionRow>;
+      caffeine_logs: Table<CaffeineLogRow, Omit<CaffeineLogRow, 'id' | 'created_at'>>;
     };
     Views: Record<string, never>;
     Functions: {

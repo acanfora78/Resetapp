@@ -53,6 +53,47 @@ export function nightSleep(
   shift: ShiftCode | null,
   nextShift: ShiftCode | null,
   ctx: Ctx,
+  shiftAfterNext: ShiftCode | null = null,
+): SleepWindow | null {
+  const base = baseNightSleep(day, shift, nextShift, ctx);
+  if (!base) return null;
+  return applyTransition(day, base, shift, nextShift, shiftAfterNext, ctx);
+}
+
+const isFree = (c: ShiftCode | null) => c === 'R' || c === null;
+
+/**
+ * Transizioni graduali (al massimo TRANSITION_MAX_SHIFT_MIN al giorno):
+ * - verso le notti: la notte prima della prima notte si va a letto e ci si sveglia più tardi;
+ * - verso la mattina dopo i riposi: due notti prima si anticipa l'ora a letto,
+ *   la sera prima vale già l'orario della mattina.
+ */
+function applyTransition(
+  day: Date,
+  base: SleepWindow,
+  shift: ShiftCode | null,
+  nextShift: ShiftCode | null,
+  shiftAfterNext: ShiftCode | null,
+  ctx: Ctx,
+): SleepWindow {
+  const step = RULES.TRANSITION_MAX_SHIFT_MIN;
+  if (nextShift === 'N' && (isFree(shift) || shift === 'P')) {
+    return { bed: addMinutes(base.bed, step), wake: addMinutes(base.wake, step) };
+  }
+  if ((isFree(shift) || shift === 'S') && isFree(nextShift) && isEarlyShift(shiftAfterNext)) {
+    // Non prima dell'orario che servirà la sera dopo per il turno del mattino.
+    const nextBed = baseNightSleep(addDays(day, 1), nextShift, shiftAfterNext, ctx)!.bed;
+    const bed = later(addMinutes(base.bed, -step), addMinutes(nextBed, -24 * 60));
+    return { bed, wake: addMinutes(bed, ctx.sleepNeedMin) };
+  }
+  return base;
+}
+
+function baseNightSleep(
+  day: Date,
+  shift: ShiftCode | null,
+  nextShift: ShiftCode | null,
+  ctx: Ctx,
 ): SleepWindow | null {
   if (shift === 'N') return null;
   const next = addDays(day, 1);
@@ -135,7 +176,7 @@ export function computePlan(input: PlanInput): PlanItem[] {
       wake = addMinutes(sleepStart, RULES.SMONTO_SLEEP_MIN);
     }
   } else {
-    wake = nightSleep(addDays(day, -1), input.prevShift, shift, input)?.wake ?? null;
+    wake = nightSleep(addDays(day, -1), input.prevShift, shift, input, input.nextShift)?.wake ?? null;
   }
 
   if (wake) {
@@ -146,7 +187,7 @@ export function computePlan(input: PlanInput): PlanItem[] {
   }
 
   // 2. La notte che segue.
-  const tonight = nightSleep(day, shift, input.nextShift, input);
+  const tonight = nightSleep(day, shift, input.nextShift, input, input.shiftAfterNext ?? null);
 
   // 3. Azioni specifiche del turno.
   switch (effective) {

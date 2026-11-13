@@ -50,6 +50,13 @@
           "enableRemoteNotifications": false,
           "color": "#FFA529"
         }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Reset scrive i tuoi turni in un calendario dedicato \"Reset \u2013 Turni\", cos\u00ec li vedi insieme agli altri impegni.",
+          "remindersPermission": false
+        }
       ]
     ],
     "extra": {

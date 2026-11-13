@@ -67,6 +67,8 @@ function RootNavigator() {
         <Stack.Screen name="schema-turni" />
         <Stack.Screen name="impostazioni/turni" />
         <Stack.Screen name="impostazioni/sonno" />
+        <Stack.Screen name="caffeina" />
+        <Stack.Screen name="transizione" />
       </Stack.Protected>
     </Stack>
     </ThemeProvider>

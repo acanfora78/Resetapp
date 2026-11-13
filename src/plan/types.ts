@@ -64,6 +64,8 @@ export interface PlanInput {
   prevShift: ShiftCode | null;
   shift: ShiftCode | null;
   nextShift: ShiftCode | null;
+  /** Turno di dopodomani: serve per preparare le transizioni (es. rientro alla Mattina). */
+  shiftAfterNext?: ShiftCode | null;
   shiftHours: ShiftHoursMap;
   commuteMin: number;
   preferredWake: ClockTime;

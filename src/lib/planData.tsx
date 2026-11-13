@@ -10,6 +10,7 @@ import { AppState } from 'react-native';
 import type { PlanContext } from '@/plan/context';
 
 import { syncNotifications } from './notifications';
+import { syncPhoneCalendar } from './phoneCalendar';
 import { loadPlanContext } from './plan';
 import { useSession } from './session';
 
@@ -50,6 +51,7 @@ export function PlanDataProvider({ children }: { children: ReactNode }) {
       ctxRef.current = next;
       setCtx(next);
       await syncNotifications(next, p);
+      syncPhoneCalendar(p); // in sottofondo: turni nel calendario del telefono
     } catch (e) {
       setError(e);
     } finally {

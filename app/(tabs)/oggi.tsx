@@ -1,15 +1,17 @@
-import { addDays, format, isSameDay } from 'date-fns';
+import { addDays, differenceInCalendarDays, format, isSameDay, startOfDay } from 'date-fns';
 import { it as itLocale } from 'date-fns/locale';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
+import { CaffeineSheet } from '@/components/CaffeineSheet';
 import { PlanChecklist } from '@/components/PlanChecklist';
 import { ShiftBadge } from '@/components/ShiftBadge';
 import it from '@/i18n/it';
+import { toDoses } from '@/lib/caffeine';
 import { fetchCheckIds, setCheck } from '@/lib/checks';
 import { errorText } from '@/lib/errors';
 import { useNightMode } from '@/lib/nightMode';
@@ -18,9 +20,12 @@ import { notificationPrefs, openSystemSettings, requestPermission } from '@/lib/
 import { usePlanData } from '@/lib/planData';
 import { updateProfile } from '@/lib/profile';
 import { useSession, useUserId } from '@/lib/session';
+import { useCaffeine } from '@/lib/useCaffeine';
+import { caffeineVerdict } from '@/plan/caffeine';
+import { upcomingTransition } from '@/plan/transitions';
 import { planForDay } from '@/plan/context';
 import { toISODate } from '@/plan/cycle';
-import { capitalizeFirst } from '@/plan/time';
+import { capitalizeFirst, formatClock } from '@/plan/time';
 import { currentPlanDay, splitChecklist } from '@/plan/today';
 import { isWorkShift } from '@/plan/types';
 import type { PlanItemKey } from '@/plan/types';
@@ -39,6 +44,8 @@ export default function Today() {
   const [now, setNow] = useState(() => new Date());
   const [done, setDone] = useState<Set<PlanItemKey>>(new Set());
   const [refreshing, setRefreshing] = useState(false);
+  const [coffeeSheet, setCoffeeSheet] = useState(false);
+  const caffeine = useCaffeine(userId, ctx);
 
   // L'orario "adesso" si aggiorna ogni minuto e quando si torna sulla schermata.
   useEffect(() => {
@@ -92,7 +99,7 @@ export default function Today() {
   const onRefresh = async () => {
     setRefreshing(true);
     setNow(new Date());
-    await Promise.all([reload(), loadChecks()]);
+    await Promise.all([reload(), loadChecks(), caffeine.load()]);
     setRefreshing(false);
   };
 
@@ -119,6 +126,8 @@ export default function Today() {
   const shift = ctx?.shiftOn(planDay) ?? null;
   const hours = ctx && shift && isWorkShift(shift) ? ctx.shiftHours[shift] : null;
   const { next, pending, completed } = splitChecklist(items, done, now);
+  const transition = ctx ? upcomingTransition(ctx, now) : null;
+  const coffee = ctx && caffeine.rows.length > 0 ? caffeineVerdict(ctx, toDoses(caffeine.rows), now) : null;
   const doneCount = completed.length;
 
   // Riga sotto il turno: il turno successivo al giorno del piano.
@@ -212,6 +221,38 @@ export default function Today() {
               </View>
             ) : null}
 
+            {transition ? (
+              <Pressable
+                onPress={() => router.push({ pathname: '/transizione', params: { d: toISODate(transition.date) } })}
+                style={[styles.card, styles.transitionCard]}
+                accessibilityRole="button"
+              >
+                <AppText variant="caption" color={colors.accent}>
+                  {it.transitions.when(differenceInCalendarDays(transition.date, startOfDay(now)))}
+                </AppText>
+                <AppText variant="bodyMedium">🔄 {it.transitions.card[transition.type]}</AppText>
+                <AppText variant="label" color={colors.accent}>
+                  {it.transitions.open} →
+                </AppText>
+              </Pressable>
+            ) : null}
+
+            {coffee && coffee.status !== 'none' ? (
+              <Pressable onPress={() => router.push('/caffeina')} style={styles.card} accessibilityRole="button">
+                <AppText variant="bodyMedium">☕ {it.caffeine.cardTitle}</AppText>
+                <AppText variant="caption">
+                  {coffee.status === 'ok'
+                    ? it.caffeine.ok
+                    : it.caffeine.high(formatClock(coffee.sleepAt!), coffee.percentAtSleep)}
+                </AppText>
+                <AppText variant="label" color={colors.accent}>
+                  {it.caffeine.open} →
+                </AppText>
+              </Pressable>
+            ) : null}
+
+            <Button variant="secondary" title={it.caffeine.quickButton} onPress={() => setCoffeeSheet(true)} />
+
             <View style={styles.sectionHeader}>
               <AppText variant="label" secondary>
                 {isYesterday ? (shift === 'N' ? it.today.nightPlanTitle : it.today.eveningPlanTitle) : it.today.planTitle}
@@ -231,6 +272,14 @@ export default function Today() {
           </>
         ) : null}
       </ScrollView>
+      <CaffeineSheet
+        visible={coffeeSheet}
+        onClose={() => setCoffeeSheet(false)}
+        onPick={(t) => {
+          setCoffeeSheet(false);
+          caffeine.add(t);
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -242,6 +291,7 @@ const useStyles = makeStyles((colors) => ({
   nightChip: { backgroundColor: colors.surfaceAlt, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 2 },
   card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md, gap: 4 },
   shiftRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  transitionCard: { borderWidth: 1, borderColor: colors.accent, gap: 4 },
   nextDay: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   dot: { width: 10, height: 10, borderRadius: 5 },
   notifCompact: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm },

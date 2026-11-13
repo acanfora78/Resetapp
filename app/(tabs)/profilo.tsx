@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
 
 import { Toggle } from '@/components/Toggle';
@@ -17,6 +17,7 @@ import { errorText } from '@/lib/errors';
 import { useNightMode } from '@/lib/nightMode';
 import type { NightModePref } from '@/lib/nightMode';
 import { notificationPrefs, openSystemSettings, requestPermission } from '@/lib/notifications';
+import { disablePhoneCalendar, enablePhoneCalendar, isPhoneCalendarEnabled } from '@/lib/phoneCalendar';
 import { updateProfile } from '@/lib/profile';
 import { useSession, useUserId } from '@/lib/session';
 import { toClock } from '@/plan/time';
@@ -31,6 +32,48 @@ export default function Profile() {
   const { session, profile, refreshProfile } = useSession();
   const night = useNightMode();
   const [savingNotif, setSavingNotif] = useState(false);
+
+  const [calendarOn, setCalendarOn] = useState(false);
+  const [savingCal, setSavingCal] = useState(false);
+  useEffect(() => {
+    isPhoneCalendarEnabled().then(setCalendarOn);
+  }, []);
+
+  const toggleCalendar = (value: boolean) => {
+    if (!value) {
+      setSavingCal(true);
+      disablePhoneCalendar()
+        .then(() => setCalendarOn(false))
+        .catch((e) => Alert.alert(it.common.error, errorText(e)))
+        .finally(() => setSavingCal(false));
+      return;
+    }
+    // Spiegazione prima della richiesta di permesso del sistema.
+    Alert.alert(it.phoneCalendar.explainTitle, it.phoneCalendar.explainBody, [
+      { text: it.common.cancel, style: 'cancel' },
+      {
+        text: it.phoneCalendar.allow,
+        onPress: async () => {
+          if (!profile) return;
+          setSavingCal(true);
+          try {
+            const res = await enablePhoneCalendar(profile);
+            setCalendarOn(res === 'enabled');
+            if (res === 'denied') {
+              Alert.alert(it.phoneCalendar.deniedTitle, it.phoneCalendar.deniedBody, [
+                { text: it.common.cancel, style: 'cancel' },
+                { text: it.notifications.openSettings, onPress: openSystemSettings },
+              ]);
+            }
+          } catch (e) {
+            Alert.alert(it.common.error, errorText(e));
+          } finally {
+            setSavingCal(false);
+          }
+        },
+      },
+    ]);
+  };
 
   const prefs = notificationPrefs(profile);
   const notifOn = prefs.abilitate === true;
@@ -90,6 +133,22 @@ export default function Profile() {
             disabled={savingNotif}
             onValueChange={toggleNotifications}
             accessibilityLabel={it.profile.notifications}
+          />
+        </View>
+      </Section>
+
+      <Section title={it.profile.sections.calendar}>
+        <View style={styles.row}>
+          <Ionicons name="calendar-outline" size={22} color={colors.text} />
+          <View style={{ flex: 1 }}>
+            <AppText variant="bodyMedium">{it.phoneCalendar.toggle}</AppText>
+            <AppText variant="caption">{it.phoneCalendar.hint}</AppText>
+          </View>
+          <Toggle
+            value={calendarOn}
+            disabled={savingCal}
+            onValueChange={toggleCalendar}
+            accessibilityLabel={it.phoneCalendar.toggle}
           />
         </View>
       </Section>

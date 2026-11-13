@@ -33,9 +33,10 @@ describe('currentPlanDay', () => {
   });
 
   it('se si va a letto dopo mezzanotte, il piano di ieri resta fino all’ora di andare a letto', () => {
-    // 12 S → 13 R: a letto alle 00:30 del 13
-    expect(day(currentPlanDay(ctx, at(13, 0, 10)))).toBe('12/03');
-    expect(day(currentPlanDay(ctx, at(13, 3)))).toBe('13/03');
+    // Schema con due riposi: 12 S → 13 R → 14 R, a letto alle 00:30 del 13
+    const ctx2 = ctxWith(['M', 'P', 'N', 'S', 'R', 'R'], '2026-03-09');
+    expect(day(currentPlanDay(ctx2, at(13, 0, 10)))).toBe('12/03');
+    expect(day(currentPlanDay(ctx2, at(13, 3)))).toBe('13/03');
   });
 });
 

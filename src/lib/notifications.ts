@@ -11,6 +11,7 @@ import { planText } from '@/i18n/planText';
 import type { PlanContext } from '@/plan/context';
 import { toISODate } from '@/plan/cycle';
 import { notificationSchedule } from '@/plan/today';
+import { transitionReminders } from '@/plan/transitions';
 
 import { fetchCheckIds } from './checks';
 import type { NotificationPrefs } from './notificationCard';
@@ -82,6 +83,19 @@ async function doSync(ctx: PlanContext | null, profile: ProfileRow | null) {
   const now = new Date();
   const done = await fetchCheckIds(toISODate(addDays(now, -1)), toISODate(addDays(now, 1)));
   const reminders = notificationSchedule(ctx, now, done);
+
+  for (const t of transitionReminders(ctx, now)) {
+    const text = it.transitions.notification[t.type];
+    await Notifications.scheduleNotificationAsync({
+      identifier: t.id,
+      content: { title: text.title, body: text.body, sound: true, data: { url: '/oggi' } },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: t.date,
+        ...(Platform.OS === 'android' ? { channelId: ANDROID_CHANNEL } : {}),
+      },
+    });
+  }
 
   for (const r of reminders) {
     const s = planText(r);

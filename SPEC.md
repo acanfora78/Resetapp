@@ -49,6 +49,11 @@ Reset aiuta chi lavora su turni a rotazione con le notti a dormire abbastanza e 
 5. **Notifiche:** promemoria locali delle azioni del piano per i 7 giorni successivi (massimo 60 in attesa, limite iOS), riprogrammati a ogni modifica di turni, orari, preferenze o spunte; le azioni già spuntate non vengono notificate. Il permesso si chiede con la card "Attiva i promemoria" nella schermata Oggi (o dal Profilo), mai a sorpresa. Preferenza salvata in `profiles.notifiche` (`{ "abilitate": true/false }`).
 6. **Statistiche:** grafico settimanale di ore dormite ed energia.
 
+### Uso quotidiano (Fase B)
+- **Piano di transizione tra turni:** rileva nei prossimi 7 giorni l'ingresso nelle notti, l'uscita dalle notti e il rientro alla mattina dopo almeno un riposo. Il sonno si sposta al massimo di `TRANSITION_MAX_SHIFT_MIN` (90 min) al giorno. Verso le notti: se il giorno prima è libero o di pomeriggio, a letto e sveglia 90 min più tardi, più il pisolino lungo prima della notte. Uscita dalle notti: regole dello Smonto. Verso la mattina: due notti prima l'ora a letto si anticipa di 90 min, la sera prima vale l'orario della mattina. Card "Cambio turno in arrivo" su Oggi entro 3 giorni, vista "Prossimi 3 giorni", promemoria alle 19:00 della sera prima.
+- **Caffeina residua:** pulsante "☕ Ho preso un caffè" su Oggi (Espresso, Moka/caffè lungo, Energy drink, Tè/Cola; porzioni in `CAFFEINE_DOSES_MG`). Stima a decadimento esponenziale con emivita `CAFFEINE_HALF_LIFE_H` (5 h), grafico delle prossime 24 h con soglia sonno (`CAFFEINE_SLEEP_THRESHOLD_MG`) e ora a letto del piano, messaggio sulla percentuale residua. Avviso gentile se il caffè è dopo lo "Stop caffeina". Nota: "Stima educativa: ogni persona smaltisce la caffeina in modo diverso."
+- **Turni nel calendario del telefono:** interruttore in Profilo; calendario dedicato "Reset – Turni" con i turni dei prossimi 60 giorni (orari veri per i turni di lavoro, tutto il giorno per Smonto e Riposo), aggiornato a ogni modifica; disattivandolo il calendario viene rimosso. Preferenza del dispositivo.
+
 ### Recupero
 7. **Routine post-notte guidata:** checklist di decompressione (doccia tiepida, luce bassa, telefono lontano, stanza buia e fresca) più un audio di rilassamento di circa 5–10 minuti.
 8. **Timer pisolino strategico:** scegli 20 minuti (pisolino breve) o 90 minuti (ciclo completo), con sveglia.
@@ -163,6 +168,7 @@ Ogni tabella ha `user_id` collegato a `auth.users`, con **Row Level Security att
 | `sleep_logs` | `id`, `user_id`, `data` (date), `a_letto` (timestamptz), `sveglia` (timestamptz), `minuti_dormiti` (int), `energia` (1–5), `note` |
 | `plan_checks` | `id`, `user_id`, `data` (date), `item_key` (text), `fatto_at` (timestamptz) |
 | `daily_scores` | `id`, `user_id`, `data` (date), `punteggio` (0–100) |
+| `caffeine_logs` | `id`, `user_id`, `consumato_at` (timestamptz), `tipo` (espresso/moka/energy/te_cola), `quantita_mg` (int) |
 | `subscriptions` | `user_id`, `piattaforma` (ios/android), `prodotto` (mensile/annuale), `stato` (attivo/scaduto/annullato/rimborsato), `scadenza` (timestamptz), `transaction_id_originale`, `aggiornato_at` |
 
 - Le mini-guide e la guida ai pasti sono contenuti statici dentro l'app (file TypeScript o JSON).

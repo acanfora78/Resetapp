@@ -218,6 +218,68 @@ export const it = {
     },
   },
 
+  transitions: {
+    card: {
+      to_nights: 'Cambio turno in arrivo: notti',
+      from_nights: 'Cambio turno in arrivo: fine delle notti',
+      to_mornings: 'Cambio turno in arrivo: si torna alla mattina',
+    },
+    when: (days: number) => (days === 0 ? 'Oggi' : days === 1 ? 'Domani' : `Tra ${days} giorni`),
+    open: 'Vedi i prossimi 3 giorni',
+    screenTitle: 'Prossimi 3 giorni',
+    intro: {
+      to_nights: 'Il giorno prima vai a letto e ti alzi più tardi, il pomeriggio della prima notte fai un pisolino lungo. Così il corpo si sposta un po’ alla volta.',
+      from_nights: 'Dopo l’ultima notte: sonno breve, luce naturale nel pomeriggio e a letto presto. Il giorno dopo sei di nuovo sul ritmo del giorno.',
+      to_mornings: 'Nei due giorni prima anticipi l’ora a letto un po’ alla volta, invece di un salto brusco la sera prima.',
+    },
+    dayLabel: (label: string) => label,
+    notification: {
+      to_nights: { title: 'Domani inizi le notti', body: 'Stasera puoi fare un po’ più tardi: apri Reset per il piano dei prossimi giorni.' },
+      from_nights: { title: 'Stanotte è l’ultima notte', body: 'Domani sonno breve e a letto presto: apri Reset per il piano.' },
+      to_mornings: { title: 'Si torna alla mattina', body: 'Stasera a letto un po’ prima del solito: apri Reset per il piano.' },
+    },
+  },
+
+  caffeine: {
+    quickButton: '☕ Ho preso un caffè',
+    sheetTitle: 'Cosa hai preso?',
+    types: {
+      espresso: 'Espresso',
+      moka: 'Moka / caffè lungo',
+      energy: 'Energy drink',
+      te_cola: 'Tè / Cola',
+    },
+    mg: (n: number) => `circa ${n} mg`,
+    saved: 'Registrato.',
+    lateTitle: 'Capita',
+    lateBody: 'Era dopo l’orario “Stop caffeina”: potresti metterci un po’ di più ad addormentarti. Stasera tieni la luce bassa e il telefono lontano.',
+    cardTitle: 'Caffeina in circolo',
+    ok: 'Ok: quando vai a letto sarà sotto la soglia.',
+    high: (time: string, percent: number) =>
+      `Alle ${time} avrai ancora circa il ${percent}% della caffeina di oggi.`,
+    open: 'Vedi il grafico',
+    screenTitle: 'Caffeina',
+    chartLegendThreshold: 'Soglia sonno',
+    chartLegendBed: 'A letto',
+    nowLabel: 'Adesso',
+    todayList: 'Ultime 24 ore',
+    empty: 'Nessun caffè nelle ultime 24 ore.',
+    remove: 'Elimina',
+    note: 'Stima educativa: ogni persona smaltisce la caffeina in modo diverso. Non sostituisce il parere medico.',
+  },
+
+  phoneCalendar: {
+    calendarName: 'Reset – Turni',
+    eventNote: 'Turno inserito da Reset.',
+    toggle: 'Mostra i turni nel calendario del telefono',
+    hint: 'Reset crea il calendario “Reset – Turni” con i turni dei prossimi 60 giorni e lo aggiorna da solo. Se il calendario è condiviso (per esempio su iCloud con il partner), lo vedrà anche lui.',
+    explainTitle: 'Turni nel calendario',
+    explainBody: 'Reset ti chiederà il permesso di usare il calendario e creerà “Reset – Turni”, separato dagli altri. Se lo spegni, il calendario viene rimosso.',
+    deniedTitle: 'Calendario non disponibile',
+    deniedBody: 'Per mostrare i turni, consenti a Reset l’accesso al calendario nelle Impostazioni dell’iPhone.',
+    allow: 'Continua',
+  },
+
   notifications: {
     channelName: 'Piano del giorno',
     deniedTitle: 'Notifiche bloccate',
@@ -259,6 +321,7 @@ export const it = {
     sections: {
       plan: 'Il tuo piano',
       reminders: 'Promemoria',
+      calendar: 'Calendario del telefono',
       nightMode: 'Modalità notte',
       info: 'Informazioni',
     },
