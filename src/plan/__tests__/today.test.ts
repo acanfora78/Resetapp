@@ -74,7 +74,7 @@ describe('notificationSchedule', () => {
     for (let i = 1; i < list.length; i++) {
       expect(list[i]!.date.getTime()).toBeGreaterThanOrEqual(list[i - 1]!.date.getTime());
     }
-    expect(list.some((r) => r.key === 'light_activity')).toBe(false); // non notificata
+    expect(list.some((r) => r.key === 'movement')).toBe(false); // non notificata
   });
 
   it('copre i prossimi 7 giorni e rispetta il limite', () => {

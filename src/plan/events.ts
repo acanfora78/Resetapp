@@ -182,10 +182,13 @@ export function eventPlanItems(base: PlanContext, events: PlannedEvent[]): Map<s
   for (const ev of events) {
     const day = startOfDay(ev.start);
     const context = dayContext(base.shiftOn(addDays(day, -1)), base.shiftOn(day), base.shiftOn(addDays(day, 1)));
-    push(day, { key: 'event', time: ev.start, notify: NOTIFY.event, context, label: ev.title });
+    push(day, { key: 'event', time: ev.start, end: ev.end, notify: NOTIFY.event, context, label: ev.title });
     const { tips } = evaluateEvent(base, ev);
     for (const t of tips) {
-      if (t.key === 'nap') push(day, { key: 'event_nap', time: t.time, notify: NOTIFY.event_nap, context });
+      if (t.key === 'nap') {
+        const end = addMinutes(t.time, RULES.EVENT_NAP_MIN);
+        push(day, { key: 'event_nap', time: t.time, end, notify: NOTIFY.event_nap, context });
+      }
       if (t.key === 'caffeine') push(day, { key: 'event_caffeine', time: t.time, notify: NOTIFY.event_caffeine, context });
     }
   }

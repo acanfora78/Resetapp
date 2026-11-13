@@ -31,6 +31,7 @@ import { planForDay } from '@/plan/context';
 import { toISODate } from '@/plan/cycle';
 import { capitalizeFirst, formatClock } from '@/plan/time';
 import { currentPlanDay, splitChecklist } from '@/plan/today';
+import { extraItems, visibleItems } from '@/plan/visibility';
 import { isWorkShift } from '@/plan/types';
 import type { PlanItemKey } from '@/plan/types';
 import { makeStyles, radius, spacing, useColors } from '@/theme';
@@ -71,7 +72,10 @@ export default function Today() {
 
   const planDay = useMemo(() => (ctx ? currentPlanDay(ctx, now) : now), [ctx, now]);
   const planDayISO = toISODate(planDay);
-  const items = useMemo(() => (ctx ? planForDay(ctx, planDay) : []), [ctx, planDay]);
+  const allItems = useMemo(() => (ctx ? planForDay(ctx, planDay) : []), [ctx, planDay]);
+  // Lista principale (al massimo 7 azioni) e "Altri consigli".
+  const items = useMemo(() => visibleItems(allItems), [allItems]);
+  const others = useMemo(() => extraItems(allItems), [allItems]);
   const isYesterday = !isSameDay(planDay, now);
 
   const loadChecks = useCallback(async () => {
@@ -316,7 +320,14 @@ export default function Today() {
               </AppText>
             ) : null}
 
-            <PlanChecklist pending={pending} completed={completed} nextKey={next?.key ?? null} onToggle={toggle} />
+            <PlanChecklist
+              pending={pending}
+              completed={completed}
+              extras={others}
+              done={done}
+              nextKey={next?.key ?? null}
+              onToggle={toggle}
+            />
           </>
         ) : null}
       </ScrollView>

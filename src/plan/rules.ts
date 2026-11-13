@@ -5,7 +5,10 @@
  * dopo la validazione di un esperto senza toccare il resto del codice.
  * Le durate sono in minuti, gli orari nel formato "HH:mm".
  */
-import type { PlanItemKey } from './types';
+import type { PlanCategory, PlanItemKey } from './types';
+
+/** Categorie di azioni facoltative, nell'ordine del Profilo. */
+export const PLAN_CATEGORIES: readonly PlanCategory[] = ['meals', 'movement', 'organization', 'habits'];
 
 export const RULES = {
   /** Fabbisogno di sonno predefinito (7,5 h). */
@@ -52,8 +55,35 @@ export const RULES = {
   /** Smonto: luce naturale nel pomeriggio. */
   NATURAL_LIGHT_TIME: '15:00',
 
-  /** Riposo: attività fisica leggera, minuti dopo la sveglia. */
-  LIGHT_ACTIVITY_AFTER_WAKE_MIN: 120,
+  // --- Abitudini e organizzazione ----------------------------------------------
+  /** "Stacca dallo schermo": tot minuti prima di ogni sonno principale (non dopo la notte). */
+  SCREEN_OFF_BEFORE_BED_MIN: 45,
+  /** "Prepara tutto la sera prima" (prima di Mattina e Giorno): tot minuti prima di andare a letto. */
+  PREPARE_BEFORE_BED_MIN: 75,
+
+  // --- Pasto principale prima della notte ---------------------------------------
+  /** Il pasto è alla fine del pisolino pre-notte, ma non prima di partenza − tot minuti. */
+  MAIN_MEAL_BEFORE_SHIFT_MAX_MIN: 120,
+  /** Senza pisolino pre-notte: partenza − tot minuti. */
+  MAIN_MEAL_BEFORE_SHIFT_DEFAULT_MIN: 90,
+  /** Durata considerata del pasto (serve a non sovrapporre il movimento). */
+  MAIN_MEAL_DURATION_MIN: 30,
+
+  // --- Movimento ------------------------------------------------------------------
+  /** Durata minima della finestra libera. */
+  MOVEMENT_DURATION_MIN: 30,
+  /** La finestra inizia almeno tot minuti dopo una sveglia (anche dopo un pisolino). */
+  MOVEMENT_MIN_AFTER_WAKE_MIN: 60,
+  /** …e finisce almeno tot ore prima di un sonno principale o di un pisolino. */
+  MOVEMENT_MIN_BEFORE_SLEEP_H: 3,
+
+  // --- Consiglio sull'alcol -------------------------------------------------------
+  /** Il consiglio compare al massimo una volta ogni tot giorni (smonto o dopo l'ultima notte). */
+  ALCOHOL_TIP_EVERY_DAYS: 7,
+
+  // --- Lista del piano --------------------------------------------------------------
+  /** Azioni visibili al massimo; le altre vanno in "Altri consigli" (le essenziali restano sempre visibili). */
+  MAX_VISIBLE_ACTIONS: 7,
 
   /** Se due azioni cadono alla stessa ora, la seconda viene spostata di tot minuti. */
   COLLISION_SHIFT_MIN: 15,
@@ -163,8 +193,86 @@ export const NOTIFY: Record<PlanItemKey, boolean> = {
   day_sleep: true,
   short_sleep: true,
   natural_light: true,
-  light_activity: false,
   event: false,
   event_nap: true,
   event_caffeine: true,
+  screen_off: true,
+  main_meal: true,
+  prepare_evening: true,
+  prepare_room: true,
+  movement: false,
+  light_walk: true,
+  alcohol_tip: false,
 };
+
+/**
+ * Categoria di ogni azione. `null` = essenziale: sempre visibile e non disattivabile.
+ */
+export const ITEM_CATEGORY: Record<PlanItemKey, PlanCategory | null> = {
+  wake: null,
+  wake_bright_light: null,
+  wake_morning_light: null,
+  bedtime: null,
+  low_light: null,
+  caffeine_stop: null,
+  nap_short: null,
+  shift_break: null,
+  nap_pre_night: null,
+  night_bright_light: null,
+  night_caffeine_stop: null,
+  drive_alert: null,
+  post_night_routine: null,
+  day_sleep: null,
+  short_sleep: null,
+  natural_light: null,
+  light_walk: null,
+  event: null,
+  event_nap: null,
+  event_caffeine: null,
+  main_meal: 'meals',
+  night_light_meal: 'meals',
+  movement: 'movement',
+  prepare_evening: 'organization',
+  prepare_room: 'organization',
+  screen_off: 'habits',
+  alcohol_tip: 'habits',
+};
+
+/**
+ * Priorità per la lista "Il tuo piano di oggi" (1 = più importante). Se ci sono più di
+ * MAX_VISIBLE_ACTIONS azioni, quelle con il numero più alto vanno in "Altri consigli".
+ * Le azioni di "Posso andarci?" seguono la priorità del loro tipo.
+ */
+export const ITEM_PRIORITY: Record<PlanItemKey, number> = {
+  bedtime: 1,
+  day_sleep: 1,
+  short_sleep: 1,
+  wake: 2,
+  wake_bright_light: 2,
+  wake_morning_light: 2,
+  // L'evento l'ha scelto l'utente: subito dopo sonno e sveglia.
+  event: 2,
+  nap_short: 3,
+  nap_pre_night: 3,
+  event_nap: 3,
+  caffeine_stop: 4,
+  night_caffeine_stop: 4,
+  event_caffeine: 4,
+  drive_alert: 5,
+  night_bright_light: 6,
+  natural_light: 6,
+  light_walk: 6,
+  low_light: 6,
+  post_night_routine: 7,
+  shift_break: 8,
+  main_meal: 9,
+  night_light_meal: 9.5,
+  prepare_room: 10,
+  screen_off: 11,
+  prepare_evening: 12,
+  movement: 13,
+  alcohol_tip: 14,
+};
+
+/** Azioni che stanno sempre in "Altri consigli" (consigli senza orario). */
+export const ALWAYS_EXTRA: ReadonlySet<PlanItemKey> = new Set<PlanItemKey>(['alcohol_tip']);

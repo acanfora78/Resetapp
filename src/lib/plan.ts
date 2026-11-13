@@ -1,6 +1,8 @@
 import { addDays } from 'date-fns';
 
 import type { PlanContext } from '@/plan/context';
+import { PLAN_CATEGORIES } from '@/plan/rules';
+import type { PlanPrefs } from '@/plan/types';
 import { resolveShift, toISODate } from '@/plan/cycle';
 import { RULES } from '@/plan/rules';
 import { eventPlanItems } from '@/plan/events';
@@ -19,6 +21,14 @@ import { fetchEvents, fetchSleepLogs } from './userData';
 
 export { planForDay } from '@/plan/context';
 export type { PlanContext } from '@/plan/context';
+
+/** Categorie facoltative del piano salvate nel profilo (mancante = accesa). */
+export function planPrefs(profile: Pick<ProfileRow, 'preferenze_piano'> | null): PlanPrefs {
+  const raw = (profile?.preferenze_piano ?? {}) as Record<string, unknown>;
+  const out: PlanPrefs = {};
+  for (const c of PLAN_CATEGORIES) if (raw[c] === false) out[c] = false;
+  return out;
+}
 
 /** Carica turni, schema e orari da due giorni prima fino ai giorni coperti dalle notifiche. */
 export async function loadPlanContext(
@@ -41,6 +51,7 @@ export async function loadPlanContext(
     preferredWake: toClock(profile.sveglia_preferita, '08:00'),
     sleepNeedMin,
     shiftOn: (d) => resolveShift(stored, cycle, d),
+    prefs: planPrefs(profile),
   };
 
   // Diario ed eventi: se non si caricano, il piano resta quello di base.

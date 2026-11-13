@@ -1,6 +1,6 @@
 import { addDays } from 'date-fns';
 
-import { planForDay } from '@/plan/context';
+import { mainPlanForDay } from '@/plan/context';
 import { fromISODate, toISODate } from '@/plan/cycle';
 import { streak } from '@/plan/score';
 
@@ -16,10 +16,13 @@ export async function loadStreak(profile: ProfileRow, today = new Date()): Promi
     loadPlanContext(profile, today, 1, STREAK_LOOKBACK_DAYS + 2),
     fetchCheckIds(toISODate(addDays(today, -STREAK_LOOKBACK_DAYS)), toISODate(today)),
   ]);
-  const doneByDay = new Map<string, number>();
-  for (const id of ids) doneByDay.set(id.slice(0, 10), (doneByDay.get(id.slice(0, 10)) ?? 0) + 1);
+  // Contano solo le azioni visibili e attive (non quelle in "Altri consigli").
   return streak(
-    (iso) => ({ done: doneByDay.get(iso) ?? 0, total: planForDay(ctx, fromISODate(iso)).length }),
+    (iso) => {
+      const items = mainPlanForDay(ctx, fromISODate(iso)).filter((i) => !i.tip);
+      const done = items.filter((i) => ids.has(`${iso}_${i.key}`)).length;
+      return { done, total: items.length };
+    },
     today,
     STREAK_LOOKBACK_DAYS,
   );

@@ -77,7 +77,9 @@ describe('Notte (N)', () => {
     expect(map.get('night_light_meal')).toBe('11 00:00');
     expect(map.get('night_caffeine_stop')).toBe('11 02:00');
     expect(map.get('drive_alert')).toBe('11 06:00');
-    expect(map.get('post_night_routine')).toBe('11 06:30');
+    // Prima "Prepara la camera" al rientro, poi la routine (slitta di 15 minuti).
+    expect(map.get('prepare_room')).toBe('11 06:30');
+    expect(map.get('post_night_routine')).toBe('11 06:45');
     expect(map.has('bedtime')).toBe(false);
     expectNoDuplicateTimes(items);
   });
@@ -94,7 +96,10 @@ describe('Smonto (S)', () => {
     const { map } = plan('N', 'S', 'R');
     expect(map.get('short_sleep')).toBe('10 07:00');
     expect(map.get('wake')).toBe('10 10:30');
-    expect(map.get('natural_light')).toBe('10 15:00');
+    // Con il movimento acceso la luce del pomeriggio diventa una passeggiata.
+    expect(map.get('light_walk')).toBe('10 15:00');
+    expect(map.has('natural_light')).toBe(false);
+    expect(map.has('movement')).toBe(false);
     expect(map.get('bedtime')).toBe('11 00:30');
     expect(map.has('caffeine_stop')).toBe(false);
   });
@@ -102,16 +107,22 @@ describe('Smonto (S)', () => {
   it('un riposo subito dopo la notte segue le regole dello smonto', () => {
     const { map } = plan('N', 'R', 'R');
     expect(map.has('short_sleep')).toBe(true);
-    expect(map.has('natural_light')).toBe(true);
+    expect(map.has('light_walk')).toBe(true);
+  });
+
+  it('con il movimento spento resta la luce naturale', () => {
+    const { map } = plan('N', 'S', 'R', { prefs: { movement: false } });
+    expect(map.get('natural_light')).toBe('10 15:00');
+    expect(map.has('light_walk')).toBe(false);
   });
 });
 
 describe('Riposo (R)', () => {
-  it('sveglia + luce naturale in un’unica azione, attività leggera', () => {
+  it('sveglia + luce naturale in un’unica azione, movimento 60 minuti dopo', () => {
     const { map } = plan('R', 'R', 'R');
     expect(map.get('wake_morning_light')).toBe('10 08:00');
     expect(map.has('wake')).toBe(false);
-    expect(map.get('light_activity')).toBe('10 10:00');
+    expect(map.get('movement')).toBe('10 09:00');
     expect(map.get('bedtime')).toBe('11 00:30');
   });
 

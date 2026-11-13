@@ -7,9 +7,24 @@
  */
 import { addDays, addMinutes, startOfDay } from 'date-fns';
 
-import { NOTIFY, RULES } from './rules';
+import { findMovementWindow } from './movement';
+import { ITEM_CATEGORY, NOTIFY, RULES } from './rules';
 import { atClock, shiftWindow } from './time';
-import type { DayContext, PlanInput, PlanItem, PlanItemKey, ShiftCode, WorkShiftCode } from './types';
+import type {
+  DayContext,
+  Interval,
+  PlanCategory,
+  PlanInput,
+  PlanItem,
+  PlanItemKey,
+  PlanPrefs,
+  ShiftCode,
+  WorkShiftCode,
+} from './types';
+import { isWorkShift } from './types';
+
+/** Una categoria facoltativa è accesa se non è stata spenta esplicitamente. */
+export const isCategoryOn = (prefs: PlanPrefs | undefined, c: PlanCategory) => prefs?.[c] !== false;
 
 interface SleepWindow {
   bed: Date;
@@ -150,13 +165,35 @@ function spreadCollisions(items: PlanItem[]): PlanItem[] {
   return sorted;
 }
 
+/** Se il pisolino è slittato per una collisione, il pasto resta comunque dopo la sua fine. */
+function keepMealAfterNap(items: PlanItem[]): PlanItem[] {
+  const nap = items.find((i) => i.key === 'nap_pre_night');
+  const meal = items.find((i) => i.key === 'main_meal');
+  if (!nap || !meal) return items;
+  const napEnd = addMinutes(nap.time, RULES.NAP_PRE_NIGHT_DURATION_MIN);
+  if (meal.time >= napEnd) return items;
+  return spreadCollisions(items.map((i) => (i === meal ? { ...i, time: napEnd } : i)));
+}
+
 /** Calcola le azioni del piano per il giorno indicato, ordinate per orario e senza orari ripetuti. */
 export function computePlan(input: PlanInput): PlanItem[] {
   const day = startOfDay(input.date);
   const items: PlanItem[] = [];
   const context = dayContext(input.prevShift, input.shift, input.nextShift);
-  const add = (key: PlanItemKey, time: Date, ctx: DayContext = context) =>
+  const enabled = (key: PlanItemKey) => {
+    const c = ITEM_CATEGORY[key];
+    return c === null || isCategoryOn(input.prefs, c);
+  };
+  /** Aggiunge l'azione se la sua categoria è accesa; restituisce true se aggiunta. */
+  const add = (key: PlanItemKey, time: Date, ctx: DayContext = context) => {
+    if (!enabled(key)) return false;
     items.push({ key, time, notify: NOTIFY[key], context: ctx });
+    return true;
+  };
+
+  // Per il movimento: sonni (anche pisolini) e impegni della giornata.
+  const sleeps: Interval[] = [...(input.extraNaps ?? [])];
+  const busy: Interval[] = [...(input.busy ?? [])];
 
   const shift = input.shift;
   const afterNight = input.prevShift === 'N';
@@ -175,6 +212,7 @@ export function computePlan(input: PlanInput): PlanItem[] {
       add('short_sleep', sleepStart); // smonto: sonno breve, poi in piedi
       wake = addMinutes(sleepStart, RULES.SMONTO_SLEEP_MIN);
     }
+    sleeps.push({ start: sleepStart, end: wake });
   } else {
     wake = nightSleep(addDays(day, -1), input.prevShift, shift, input, input.nextShift)?.wake ?? null;
   }
@@ -188,6 +226,8 @@ export function computePlan(input: PlanInput): PlanItem[] {
     if (wake < latest) wake = later < latest ? later : latest;
   }
 
+  if (wake && !afterNight) sleeps.push({ start: addMinutes(wake, -input.sleepNeedMin), end: wake });
+
   if (wake) {
     // Sveglia e luce allo stesso orario diventano un'unica azione.
     if (isEarlyShift(effective)) add('wake_bright_light', wake);
@@ -197,6 +237,8 @@ export function computePlan(input: PlanInput): PlanItem[] {
 
   // 2. La notte che segue.
   const tonight = nightSleep(day, shift, input.nextShift, input, input.shiftAfterNext ?? null);
+  if (tonight) sleeps.push({ start: tonight.bed, end: tonight.wake });
+  if (isWorkShift(shift)) busy.push({ start: departure(day, shift, input), end: homecoming(day, shift, input) });
 
   // 3. Azioni specifiche del turno.
   switch (effective) {
@@ -206,7 +248,9 @@ export function computePlan(input: PlanInput): PlanItem[] {
         input.lastNightSleepMin != null &&
         input.lastNightSleepMin < RULES.SHORT_SLEEP_THRESHOLD_MIN
       ) {
-        add('nap_short', atClock(day, RULES.NAP_SHORT_TIME));
+        const napAt = atClock(day, RULES.NAP_SHORT_TIME);
+        add('nap_short', napAt);
+        sleeps.push({ start: napAt, end: addMinutes(napAt, RULES.NAP_SHORT_DURATION_MIN) });
       }
       if (effective === 'G') {
         const w = workWindow(day, 'G', input);
@@ -221,8 +265,22 @@ export function computePlan(input: PlanInput): PlanItem[] {
     }
     case 'N': {
       const w = workWindow(day, 'N', input);
-      const napEnd = addMinutes(departure(day, 'N', input), -RULES.NAP_PRE_NIGHT_END_BEFORE_DEPARTURE_MIN);
-      add('nap_pre_night', addMinutes(napEnd, -RULES.NAP_PRE_NIGHT_DURATION_MIN));
+      const leave = departure(day, 'N', input);
+      const napEnd = addMinutes(leave, -RULES.NAP_PRE_NIGHT_END_BEFORE_DEPARTURE_MIN);
+      const napStart = addMinutes(napEnd, -RULES.NAP_PRE_NIGHT_DURATION_MIN);
+      // Niente pisolino se si sovrapporrebbe al sonno di giorno (es. notti da 12 ore di fila).
+      const hasNap = !(wake && napStart <= wake);
+      if (hasNap) {
+        add('nap_pre_night', napStart);
+        sleeps.push({ start: napStart, end: napEnd });
+      }
+      // Pasto principale: alla fine del pisolino (mai sovrapposto), non prima di partenza − max.
+      const meal = hasNap
+        ? later(napEnd, addMinutes(leave, -RULES.MAIN_MEAL_BEFORE_SHIFT_MAX_MIN))
+        : addMinutes(leave, -RULES.MAIN_MEAL_BEFORE_SHIFT_DEFAULT_MIN);
+      if (add('main_meal', meal)) {
+        busy.push({ start: meal, end: addMinutes(meal, RULES.MAIN_MEAL_DURATION_MIN) });
+      }
       add('night_bright_light', w.start);
       const half = (w.end.getTime() - w.start.getTime()) / 2;
       add('night_caffeine_stop', new Date(w.start.getTime() + half));
@@ -234,27 +292,44 @@ export function computePlan(input: PlanInput): PlanItem[] {
           : addMinutes(w.start, RULES.NIGHT_MEAL_FALLBACK_AFTER_START_MIN),
       );
       add('drive_alert', w.end); // occhiali scuri e guida prudente
+      // Prima si prepara la camera, poi la routine (che slitta di qualche minuto).
+      add('prepare_room', homecoming(day, 'N', input));
       add('post_night_routine', homecoming(day, 'N', input));
       break;
     }
     case 'S': {
-      add('natural_light', atClock(day, RULES.NATURAL_LIGHT_TIME));
-      break;
-    }
-    case 'R': {
-      if (wake) add('light_activity', addMinutes(wake, RULES.LIGHT_ACTIVITY_AFTER_WAKE_MIN));
+      // Con il movimento acceso, la luce del pomeriggio diventa una passeggiata.
+      const at = atClock(day, RULES.NATURAL_LIGHT_TIME);
+      if (isCategoryOn(input.prefs, 'movement')) add('light_walk', at);
+      else add('natural_light', at);
       break;
     }
   }
 
-  // 4. Caffeina e ora di andare a letto.
+  // 4. Caffeina, preparazione e ora di andare a letto.
   if (tonight) {
     if (effective === 'M' || effective === 'G' || effective === 'P') {
       add('caffeine_stop', addMinutes(tonight.bed, -RULES.CAFFEINE_CUTOFF_BEFORE_BED_MIN));
     }
-    // L'ora di andare a letto si spiega con il turno di domani.
-    add('bedtime', tonight.bed, dayContext(shift, input.nextShift, null));
+    // Le azioni della sera si spiegano con il turno di domani.
+    const bedCtx = dayContext(shift, input.nextShift, null);
+    if (isEarlyShift(input.nextShift)) {
+      add('prepare_evening', addMinutes(tonight.bed, -RULES.PREPARE_BEFORE_BED_MIN), bedCtx);
+    }
+    add('screen_off', addMinutes(tonight.bed, -RULES.SCREEN_OFF_BEFORE_BED_MIN), bedCtx);
+    add('bedtime', tonight.bed, bedCtx);
   }
 
-  return spreadCollisions(items);
+  // 5. Movimento: la prima finestra libera (nello smonto è la passeggiata delle 15).
+  if (effective !== 'S' && enabled('movement')) {
+    const at = findMovementWindow({
+      from: wake ?? day,
+      until: tonight?.bed ?? addDays(day, 1),
+      sleeps,
+      busy,
+    });
+    if (at) add('movement', at);
+  }
+
+  return keepMealAfterNap(spreadCollisions(items));
 }

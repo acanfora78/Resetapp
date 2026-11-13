@@ -46,7 +46,7 @@ describe('Spiegazioni secondo il tipo di giornata', () => {
   });
 
   it('nei giorni liberi nessuna frase che parli di turno', () => {
-    for (const key of ['wake_morning_light', 'bedtime', 'light_activity'] as PlanItemKey[]) {
+    for (const key of ['wake_morning_light', 'bedtime', 'movement'] as PlanItemKey[]) {
       const t = textOf('R', 'R', 'R', key);
       expect(t).toBeDefined();
       expect(t).not.toMatch(/turno/i);

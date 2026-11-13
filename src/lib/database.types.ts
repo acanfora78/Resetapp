@@ -24,6 +24,8 @@ export type ProfileRow = {
   onboarding_completato_at: string | null;
   tipo_turni: ShiftMode;
   notifiche: Record<string, unknown>;
+  /** Categorie facoltative del piano (meals, movement, organization, habits). */
+  preferenze_piano: Record<string, unknown>;
   created_at: string;
 };
 

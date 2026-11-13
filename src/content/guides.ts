@@ -125,6 +125,6 @@ export const MEAL_GUIDE: { codes: ShiftCode[]; title: string; tips: string[] }[]
 export const POST_NIGHT_CHECKLIST = [
   { id: 'doccia', icon: '🚿', text: 'Doccia tiepida' },
   { id: 'luce', icon: '🕯️', text: 'Luce bassa in casa' },
-  { id: 'telefono', icon: '📵', text: 'Telefono lontano, in silenzioso' },
+  { id: 'telefono', icon: '📵', text: 'Stacca dallo schermo: telefono in silenzioso, lontano dal letto' },
   { id: 'stanza', icon: '🌑', text: 'Stanza buia e fresca' },
 ] as const;

@@ -27,7 +27,10 @@ import { notificationPrefs, openSystemSettings, requestPermission } from '@/lib/
 import { disablePhoneCalendar, enablePhoneCalendar, isPhoneCalendarEnabled } from '@/lib/phoneCalendar';
 import { updateProfile } from '@/lib/profile';
 import { useSession, useUserId } from '@/lib/session';
+import { planPrefs } from '@/lib/plan';
+import { PLAN_CATEGORIES } from '@/plan/rules';
 import { toClock } from '@/plan/time';
+import type { PlanCategory, PlanPrefs } from '@/plan/types';
 import { makeStyles, radius, spacing, useColors } from '@/theme';
 
 const NIGHT_OPTIONS: NightModePref[] = ['auto', 'on', 'off'];
@@ -39,6 +42,9 @@ export default function Profile() {
   const { session, profile, refreshProfile } = useSession();
   const night = useNightMode();
   const [savingNotif, setSavingNotif] = useState(false);
+  // Categorie facoltative del piano: si aggiornano subito, poi si salvano.
+  const [categories, setCategories] = useState<PlanPrefs>(() => planPrefs(profile));
+  useEffect(() => setCategories(planPrefs(profile)), [profile]);
 
   const [calendarOn, setCalendarOn] = useState(false);
   const [savingCal, setSavingCal] = useState(false);
@@ -148,6 +154,19 @@ export default function Profile() {
     }
   };
 
+  const toggleCategory = async (c: PlanCategory, value: boolean) => {
+    const before = categories;
+    const next: PlanPrefs = { ...categories, [c]: value };
+    setCategories(next);
+    try {
+      await updateProfile(userId, { preferenze_piano: next });
+      await refreshProfile(); // ricarica il piano e riprogramma i promemoria
+    } catch (e) {
+      setCategories(before);
+      Alert.alert(it.common.error, errorText(e));
+    }
+  };
+
   const sleepSummary = profile
     ? it.profile.sleepSummary(
         toClock(profile.sveglia_preferita, '08:00'),
@@ -166,6 +185,25 @@ export default function Profile() {
       <Section title={it.profile.sections.plan}>
         <Row icon="time-outline" label={it.profile.shifts} onPress={() => router.push('/impostazioni/turni')} />
         <Row icon="bed-outline" label={it.profile.sleep} detail={sleepSummary} onPress={() => router.push('/impostazioni/sonno')} />
+      </Section>
+
+      <Section title={it.profile.sections.planContent}>
+        {PLAN_CATEGORIES.map((c) => (
+          <View key={c} style={styles.row}>
+            <View style={{ flex: 1 }}>
+              <AppText variant="bodyMedium">{it.profile.planCategories[c].title}</AppText>
+              <AppText variant="caption">{it.profile.planCategories[c].hint}</AppText>
+            </View>
+            <Toggle
+              value={categories[c] !== false}
+              onValueChange={(v) => toggleCategory(c, v)}
+              accessibilityLabel={it.profile.planCategories[c].title}
+            />
+          </View>
+        ))}
+        <View style={styles.inner}>
+          <AppText variant="caption">{it.profile.planContentHint}</AppText>
+        </View>
       </Section>
 
       <Section title={it.profile.sections.reminders}>

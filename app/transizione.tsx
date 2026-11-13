@@ -10,7 +10,7 @@ import { Screen } from '@/components/Screen';
 import { ShiftBadge } from '@/components/ShiftBadge';
 import it from '@/i18n/it';
 import { usePlanData } from '@/lib/planData';
-import { planForDay } from '@/plan/context';
+import { mainPlanForDay } from '@/plan/context';
 import { toISODate } from '@/plan/cycle';
 import { capitalizeFirst } from '@/plan/time';
 import { detectTransitions } from '@/plan/transitions';
@@ -47,7 +47,7 @@ export default function TransitionScreen() {
                   </AppText>
                   <AppText variant="caption">{shift ? it.shifts.names[shift] : it.shifts.freeDay}</AppText>
                 </View>
-                <PlanTimeline items={planForDay(ctx!, day)} startIndex={i * 3} />
+                <PlanTimeline items={mainPlanForDay(ctx!, day)} startIndex={i * 3} />
               </View>
             );
           })}

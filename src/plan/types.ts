@@ -39,7 +39,13 @@ export type PlanItemKey =
   | 'day_sleep'
   | 'short_sleep'
   | 'natural_light'
-  | 'light_activity'
+  | 'light_walk'
+  | 'movement'
+  | 'screen_off'
+  | 'main_meal'
+  | 'prepare_evening'
+  | 'prepare_room'
+  | 'alcohol_tip'
   | 'event'
   | 'event_nap'
   | 'event_caffeine';
@@ -61,6 +67,23 @@ export interface PlanItem {
   notify: boolean;
   /** Testo libero (es. titolo dell'evento), al posto del titolo standard. */
   label?: string;
+  /** Fine dell'impegno (eventi, pisolini): serve a non sovrapporre altre azioni. */
+  end?: Date;
+  /** Consiglio senza orario (es. alcol): niente spunta né notifica. */
+  tip?: boolean;
+  /** true = in "Altri consigli": non notificata e non conta per punteggio e serie. */
+  extra?: boolean;
+}
+
+/** Categorie di azioni facoltative, che l'utente può spegnere dal Profilo. */
+export type PlanCategory = 'meals' | 'movement' | 'organization' | 'habits';
+/** Categorie accese o spente (una categoria mancante è accesa). */
+export type PlanPrefs = Partial<Record<PlanCategory, boolean>>;
+
+/** Intervallo di tempo occupato. */
+export interface Interval {
+  start: Date;
+  end: Date;
 }
 
 export interface PlanInput {
@@ -79,4 +102,10 @@ export interface PlanInput {
   recoveryExtraMin?: number;
   /** Minuti dormiti la notte prima, se registrati nel diario. */
   lastNightSleepMin?: number | null;
+  /** Categorie facoltative accese (mancante = tutte accese). */
+  prefs?: PlanPrefs;
+  /** Impegni già fissati (eventi): il movimento non si sovrappone. */
+  busy?: Interval[];
+  /** Pisolini aggiunti da fuori (es. prima di un evento). */
+  extraNaps?: Interval[];
 }

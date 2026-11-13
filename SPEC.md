@@ -66,7 +66,7 @@ Reset aiuta chi lavora su turni a rotazione con le notti a dormire abbastanza e 
 
 ### Stato di implementazione (Fasi 4–6)
 - **Punteggio di recupero:** anello su Oggi, calcolato quando c'è il diario della notte (pesi in `rules.ts`), salvato in `daily_scores`. **Serie** e **energia della settimana** nel Diario.
-- **Routine post-notte:** checklist (doccia tiepida, luce bassa, telefono lontano, stanza buia e fresca) e audio di rilassamento in italiano di circa 5 minuti (`assets/audio/routine-post-notte.mp3`, voce generata con ElevenLabs, suona anche in modalità silenziosa).
+- **Routine post-notte:** checklist (doccia tiepida, luce bassa, stacca dallo schermo, stanza buia e fresca) e audio di rilassamento in italiano di circa 5 minuti (`assets/audio/routine-post-notte.mp3`, voce generata con ElevenLabs, suona anche in modalità silenziosa).
 - **Timer pisolino:** 20 o 90 minuti, sveglia con notifica locale (funziona a telefono bloccato; la riprogrammazione del piano non la cancella).
 - **Guide:** 6 mini-guide e guida ai pasti per tipo di turno (`src/content/guides.ts`).
 - **Report mensile PDF** dal Profilo (`expo-print` + condivisione).
@@ -81,7 +81,7 @@ Reset aiuta chi lavora su turni a rotazione con le notti a dormire abbastanza e 
 
 ### Organizzazione
 11. **Modalità notte:** interfaccia più scura e poco luminosa, attivata in automatico durante i turni di notte (dall'inizio del turno fino a rientro + routine post-notte + 30 min) o a mano. Nel Profilo: Automatica / Sempre / Mai (preferenza del dispositivo).
-12. **Widget per la schermata home:** mostra la prossima azione del piano. **Rimandato all'aggiornamento dopo il lancio.**
+12. **Widget per la schermata home:** mostra la prossima azione visibile del piano (mai quelle di "Altri consigli" o di categorie spente). **Rimandato all'aggiornamento dopo il lancio.**
 
 ### Contenuti e motivazione
 13. **Libreria di mini-guide:** brevi lezioni su sonno, luce, caffeina e turni.
@@ -117,8 +117,32 @@ Definizioni:
 | **Pomeriggio (P)** | A letto = `rientro + 60 min` (routine di decompressione). Sveglia = `a letto + fabbisogno`. Stop caffeina = `a letto − 8 h`. Luce bassa dal rientro. |
 | **Notte (N)** | Pisolino di 90 min che finisce 60 min prima della `partenza`. Caffeina permessa solo fino a metà turno. Luce forte nella prima metà del turno. Occhiali scuri all'uscita dal lavoro. Pasto leggero: evitare pasti pesanti tra mezzanotte e le 6. Allerta guida alla fine del turno. Dopo il rientro: routine post-notte, poi sonno. **Se il giorno dopo è di nuovo N:** sonno pieno (`fabbisogno`). **Altrimenti:** vedi Smonto. |
 | **Smonto (S)** | Sonno breve dopo il rientro (3–4 h), poi in piedi. Niente caffeina fino al risveglio. Luce naturale nel pomeriggio. A letto presto la sera (`sveglia_preferita − fabbisogno`), per riallinearsi al giorno. |
-| **Riposo (R)** | Sveglia = `sveglia_preferita`. A letto = `sveglia − fabbisogno`. Luce al mattino. Suggerimento di attività fisica leggera. |
+| **Riposo (R)** | Sveglia = `sveglia_preferita`. A letto = `sveglia − fabbisogno`. Luce al mattino. Movimento (vedi sotto). |
 | **Giorno (G, 12 h)** | Come la Mattina: Sveglia = `partenza − 30 min`. A letto (la sera prima) = `sveglia − fabbisogno − 15 min`. Luce forte al risveglio. Stop caffeina = `ora a letto − 8 h`. Pisolino di 20 min se il sonno della notte prima è sotto le 6 ore. In più: **Pausa + pasto leggero** a metà turno (mangiare leggero, bere acqua). **Sera dopo il turno:** a letto = il più tardi tra (`sveglia del giorno dopo − fabbisogno`) e (`rientro + 60 min`). |
+
+### Azioni aggiuntive (tutte le costanti in `src/plan/rules.ts`)
+| Azione | Quando |
+|---|---|
+| 📵 **Stacca dallo schermo** | `a letto − SCREEN_OFF_BEFORE_BED_MIN` (45) prima di ogni sonno notturno, in tutti i tipi di giornata. Prima del sonno dopo la notte non è un'azione separata: è un passo della routine post-notte. |
+| 🍽️ **Pasto principale** | Giorni di notte (anche da 12 ore): alla fine del pisolino pre-notte, ma non prima di `partenza − MAIN_MEAL_BEFORE_SHIFT_MAX_MIN` (120); mai sovrapposto al pisolino. Senza pisolino: `partenza − MAIN_MEAL_BEFORE_SHIFT_DEFAULT_MIN` (90). Il pisolino pre-notte non c'è se inizierebbe prima del risveglio dal sonno di giorno (es. notti da 12 ore di fila con tragitto lungo). |
+| 🎒 **Prepara tutto la sera prima** | Sera prima di Mattina o Giorno (12 h): `a letto − PREPARE_BEFORE_BED_MIN` (75), prima di "Stacca dallo schermo". |
+| 🛏️ **Prepara la camera** | Al rientro dalla notte (prima del sonno pieno o del sonno breve dello smonto), prima della routine post-notte, che slitta di 15 minuti. In futuro, con lo stato "Sto dormendo", qui comparirà "Avvisa la famiglia". |
+| 🏃 **Movimento** | In tutti i tipi di giornata, alla prima finestra libera di `MOVEMENT_DURATION_MIN` (30) che inizia almeno `MOVEMENT_MIN_AFTER_WAKE_MIN` (60) dopo una sveglia (anche dopo un pisolino), finisce almeno `MOVEMENT_MIN_BEFORE_SLEEP_H` (3 h) prima di un sonno o di un pisolino e non si sovrappone a turno, tragitto, pisolini, pasti o eventi. Se non c'è, quel giorno non compare. Nello Smonto diventa "Passeggiata alla luce del giorno" alle 15 (al posto della luce naturale). Funzione pura in `src/plan/movement.ts`. Testo: movimento leggero o moderato, mai intenso vicino al sonno. |
+| 🍷 **Niente alcol per addormentarti** | Consiglio senza orario, solo in "Altri consigli", nel giorno dopo l'ultima notte, al massimo una volta ogni `ALCOHOL_TIP_EVERY_DAYS` (7). |
+
+### Regola 1: azioni essenziali e facoltative
+- **Essenziali** (sempre visibili, non disattivabili): sveglia, a letto, sonno pieno e sonno breve dopo la notte, pisolini, stop caffeina e ultima caffeina, luce, routine post-notte, occhiali scuri e guida prudente, pausa a metà turno da 12 ore, eventi di "Posso andarci?" e i loro accorgimenti.
+- **Facoltative**, in categorie che si spengono da Profilo → "Cosa vuoi nel tuo piano" (tutte accese di default; `profiles.preferenze_piano`):
+  - Pasti: pasto principale, pasto leggero.
+  - Movimento.
+  - Organizzazione: prepara tutto la sera prima, prepara la camera.
+  - Abitudini: stacca dallo schermo, consiglio sull'alcol.
+- Una categoria spenta toglie le sue azioni da lista e notifiche. Categorie in `ITEM_CATEGORY` (`rules.ts`).
+
+### Regola 2: massimo 7 azioni visibili
+- La lista mostra al massimo `MAX_VISIBLE_ACTIONS` (7) azioni; le essenziali restano comunque sempre visibili. Le facoltative in più vanno in **"Altri consigli (n)"**, ripiegabile in fondo: niente notifiche, non contano per punteggio e serie.
+- Priorità (`ITEM_PRIORITY` in `rules.ts`): a letto/sonno principale, sveglia (e eventi), pisolini, stop caffeina, guida prudente, luce, routine post-notte, pausa a metà turno, pasto principale (poi pasto leggero), prepara la camera, stacca dallo schermo, prepara tutto la sera prima, movimento, consiglio sull'alcol (sempre in "Altri consigli"). Le azioni di "Posso andarci?" seguono la priorità del loro tipo; le transizioni spostano gli orari, non aggiungono azioni.
+- Logica pura in `src/plan/visibility.ts`.
 
 Regole di presentazione:
 - Due azioni non hanno mai lo stesso orario. Sveglia e luce si uniscono in un'unica azione ("Sveglia + luce forte" nei turni del mattino, "Sveglia + luce naturale" nei giorni di riposo); occhiali scuri e allerta guida diventano "Occhiali scuri e guida prudente". Il promemoria del pasto leggero di notte è a mezzanotte (se cade nel turno). Se due azioni coincidono comunque, la seconda slitta di 15 minuti.
@@ -138,10 +162,10 @@ Ogni azione del piano ha:
 ### Punteggio recupero (0–100)
 - 50%: ore dormite rispetto al fabbisogno (al massimo 100%)
 - 30%: energia dichiarata (1 = 0 punti, 5 = massimo)
-- 20%: percentuale di azioni del piano completate
+- 20%: percentuale di azioni del piano completate (solo quelle visibili, non "Altri consigli")
 
 ### Serie
-Giorni consecutivi con almeno il 70% delle azioni del piano completate.
+Giorni consecutivi con almeno il 70% delle azioni visibili del piano completate.
 
 ---
 
@@ -166,11 +190,11 @@ L'app non è utilizzabile senza un abbonamento attivo.
 ### Barra in basso (5 sezioni)
 | Sezione | Contenuto |
 |---|---|
-| **Oggi** | Turno del giorno con la riga del turno di domani (spazio a destra per l'anello del punteggio di recupero), punteggio di recupero, azioni con spunta (in cima la prossima, le fatte nel gruppo ripiegabile "Fatte (n)"), card "Attiva i promemoria", pulsanti rapidi (pisolino, routine post-notte). Nessun testo segnaposto. |
+| **Oggi** | Turno del giorno con la riga del turno di domani (spazio a destra per l'anello del punteggio di recupero), punteggio di recupero, azioni con spunta (al massimo 7; in cima la prossima, le fatte nel gruppo ripiegabile "Fatte (n)", le altre in "Altri consigli (n)"), card "Attiva i promemoria", pulsanti rapidi (pisolino, routine post-notte). Nessun testo segnaposto. |
 | **Calendario** | Vista mensile dei turni, tocca un giorno per modificarlo, gestione dello schema ciclico |
 | **Diario** | Inserimento rapido del sonno, grafico settimanale, serie |
 | **Guide** | Mini-guide, guida ai pasti in turno |
-| **Profilo** | Orari e tragitto, notifiche, modalità notte, report PDF, gestione abbonamento, Ripristina acquisti, Termini, Privacy, disclaimer, **Elimina account** |
+| **Profilo** | Orari e tragitto, "Cosa vuoi nel tuo piano" (Pasti, Movimento, Organizzazione, Abitudini), notifiche, modalità notte, report PDF, gestione abbonamento, Ripristina acquisti, Termini, Privacy, disclaimer, **Elimina account** |
 
 ---
 
@@ -180,7 +204,7 @@ Ogni tabella ha `user_id` collegato a `auth.users`, con **Row Level Security att
 
 | Tabella | Campi principali |
 |---|---|
-| `profiles` | `id` (= user id), `nome`, `lavoro`, `sveglia_preferita` (time), `tragitto_min` (int), `fabbisogno_sonno_min` (int, default 450), `consenso_dati_at` (timestamp), `termini_accettati_at` (timestamp), `onboarding_completato_at` (timestamp), `tipo_turni` (8h/12h/personalizzati), `notifiche` (jsonb), `created_at` |
+| `profiles` | `id` (= user id), `nome`, `lavoro`, `sveglia_preferita` (time), `tragitto_min` (int), `fabbisogno_sonno_min` (int, default 450), `consenso_dati_at` (timestamp), `termini_accettati_at` (timestamp), `onboarding_completato_at` (timestamp), `tipo_turni` (8h/12h/personalizzati), `notifiche` (jsonb), `preferenze_piano` (jsonb: meals/movement/organization/habits, mancante = acceso), `created_at` |
 | `shift_types` | `id`, `user_id`, `codice` (M/P/N/G/S/R), `nome`, `inizio` (time), `fine` (time), `attivo` (bool, false = "Non faccio questo turno") |
 | `shift_patterns` | `id`, `user_id`, `sequenza` (text[] es. {M,P,N,S,R}), `data_inizio` (date), `attivo` (bool) |
 | `shifts` | `id`, `user_id`, `data` (date, unico per utente), `codice`, `manuale` (bool) |

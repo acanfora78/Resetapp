@@ -206,6 +206,8 @@ export const it = {
     markDone: (title: string) => `Segna come fatta: ${title}`,
     markUndone: (title: string) => `Segna come da fare: ${title}`,
     doneGroup: (n: number) => `Fatte (${n})`,
+    othersGroup: (n: number) => `Altri consigli (${n})`,
+    othersHint: 'Utili ma non indispensabili oggi: niente promemoria e non contano per il punteggio.',
     nextDay: (label: 'Domani' | 'Oggi', shiftName: string, hours: string | null) =>
       hours ? `${label}: ${shiftName} ${hours}` : `${label}: ${shiftName}`,
     nextDayFree: (label: 'Domani' | 'Oggi') => `${label}: nessun turno`,
@@ -492,6 +494,7 @@ export const it = {
     signedInAs: (email: string) => `Accesso come ${email}`,
     sections: {
       plan: 'Il tuo piano',
+      planContent: 'Cosa vuoi nel tuo piano',
       reminders: 'Promemoria',
       calendar: 'Calendario del telefono',
       nightMode: 'Modalità notte',
@@ -506,6 +509,13 @@ export const it = {
     shifts: 'Turni e orari',
     sleep: 'Sonno e tragitto',
     sleepSummary: (wake: string, commute: number, need: string) => `Sveglia ${wake} · ${commute} min · ${need}`,
+    planContentHint: 'Sonno, sveglia, pisolini, caffeina, luce, routine e guida prudente restano sempre: sono la base del piano.',
+    planCategories: {
+      meals: { title: 'Pasti', hint: 'Pasto principale prima della notte, pasto leggero durante.' },
+      movement: { title: 'Movimento', hint: 'Il momento giusto per muoverti, lontano dal sonno.' },
+      organization: { title: 'Organizzazione', hint: 'Prepara tutto la sera prima, prepara la camera.' },
+      habits: { title: 'Abitudini', hint: 'Stacca dallo schermo, consiglio sull’alcol.' },
+    },
     notifications: 'Notifiche del piano',
     notificationsHint: 'Promemoria per sonno, luce, caffeina e pisolini.',
     nightModeOptions: { auto: 'Automatica', on: 'Sempre', off: 'Mai' },
@@ -614,7 +624,7 @@ export const it = {
         },
       },
       night_light_meal: {
-        title: 'Pasti leggeri stanotte',
+        title: 'Pasto leggero stanotte',
         why: 'Tra mezzanotte e le 6 evita i pasti pesanti.',
       },
       drive_alert: {
@@ -647,12 +657,67 @@ export const it = {
         title: 'Luce naturale',
         why: 'Un po’ di luce nel pomeriggio ti riporta sul ritmo del giorno.',
       },
-      light_activity: {
-        title: 'Attività fisica leggera',
-        why: 'Una camminata o un po’ di movimento aiutano il recupero.',
+      light_walk: {
+        title: 'Passeggiata alla luce del giorno',
+        why: 'Luce naturale e qualche passo nel pomeriggio: ti rimettono sul ritmo del giorno senza stancarti.',
         whyBy: {
-          first_rest: 'Una camminata all’aperto aiuta a scaricare la stanchezza dei turni.',
+          S: 'Dopo il sonno breve, una camminata all’aperto: luce e movimento ti tengono sveglio fino a stasera.',
         },
+      },
+      movement: {
+        title: 'Movimento',
+        why: 'Camminata, bici o palestra leggera: aiuta il recupero. Niente sforzi intensi vicino al sonno.',
+        whyBy: {
+          M: 'Dopo il turno del mattino un po’ di movimento leggero scarica la tensione e ti fa dormire meglio.',
+          P: 'La mattina è tua: muoviti adesso, prima del turno, e stasera ti addormenti più facilmente.',
+          G: 'Giornata lunga: un movimento leggero adesso, mai intenso, tanto stasera vai a letto presto.',
+          first_night: 'Prima della notte muoviti un po’ adesso: lontano dal pisolino, così riesci a dormire.',
+          N: 'Un po’ di movimento leggero tra il sonno e il pisolino ti sveglia per bene.',
+          last_night: 'Ultima notte: movimento leggero, senza stancarti, tieni le energie per il turno.',
+          R: 'Giorno libero: camminata, bici o palestra leggera. Il corpo recupera meglio se si muove.',
+          first_rest: 'Primo giorno libero: una camminata all’aperto aiuta a scaricare la stanchezza dei turni.',
+        },
+      },
+      screen_off: {
+        title: 'Stacca dallo schermo',
+        why: 'Luce e notifiche del telefono ritardano il sonno. Metti il silenzioso e lascialo lontano dal letto.',
+        whyBy: {
+          M: 'Domani sveglia presto: telefono in silenzioso e lontano dal letto, ogni minuto di sonno conta.',
+          G: 'Domani 12 ore: stacca adesso, telefono in silenzioso e lontano dal letto.',
+          P: 'Domani lavori il pomeriggio: stacca comunque, se scorri il telefono fai tardi senza accorgertene.',
+          first_night: 'Stanotte dormi pieno prima della prima notte: telefono in silenzioso e lontano dal letto.',
+          R: 'Giorno libero domani: stacca lo stesso, l’orario regolare tiene il ritmo.',
+          first_rest: 'Domani sei libero, ma non fare tardi col telefono: silenzioso e lontano dal letto.',
+        },
+      },
+      main_meal: {
+        title: 'Pasto principale',
+        why: 'Il pasto vero va fatto prima del turno: di notte lo stomaco digerisce peggio.',
+        whyBy: {
+          first_night: 'Prima notte: un pasto vero adesso, poi stanotte solo spuntini leggeri.',
+          N: 'Mangia bene adesso: di notte lo stomaco digerisce peggio, meglio arrivare già sazio.',
+          last_night: 'Ultima notte: pasto vero adesso, così stanotte ti bastano spuntini leggeri.',
+        },
+      },
+      prepare_evening: {
+        title: 'Prepara tutto la sera prima',
+        why: 'Zaino, divisa e colazione pronti stasera = più sonno domattina.',
+        whyBy: {
+          M: 'Domani si parte presto: zaino, divisa e colazione pronti adesso, domattina dormi qualche minuto in più.',
+          G: 'Domani 12 ore: prepara adesso anche il pasto per la pausa, domattina esci senza correre.',
+        },
+      },
+      prepare_room: {
+        title: 'Prepara la camera',
+        why: 'Oscuranti chiusi, telefono in silenzioso, citofono avvisato: il sonno di giorno si protegge prima di sdraiarsi.',
+        whyBy: {
+          N: 'Stanotte si torna al lavoro: oscuranti chiusi e telefono in silenzioso, il sonno pieno di oggi deve essere buono.',
+          last_night: 'Anche per il sonno breve: buio, silenzio e citofono avvisato, così riposi davvero.',
+        },
+      },
+      alcohol_tip: {
+        title: 'Niente alcol per addormentarti',
+        why: 'Dopo la notte molti bevono per staccare: l’alcol fa addormentare prima ma rende il sonno più leggero e spezzato.',
       },
       event: {
         title: 'Evento',
