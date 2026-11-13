@@ -179,6 +179,15 @@ export function computePlan(input: PlanInput): PlanItem[] {
     wake = nightSleep(addDays(day, -1), input.prevShift, shift, input, input.nextShift)?.wake ?? null;
   }
 
+  // Recupero del debito di sonno nei giorni di riposo: sveglia più tardi,
+  // al massimo RECOVERY_MAX_EXTRA_MIN e non oltre RECOVERY_LATEST_WAKE.
+  if (wake && effective === 'R' && !afterNight && (input.recoveryExtraMin ?? 0) > 0) {
+    const extra = Math.min(input.recoveryExtraMin!, RULES.RECOVERY_MAX_EXTRA_MIN);
+    const latest = atClock(day, RULES.RECOVERY_LATEST_WAKE);
+    const later = addMinutes(wake, extra);
+    if (wake < latest) wake = later < latest ? later : latest;
+  }
+
   if (wake) {
     // Sveglia e luce allo stesso orario diventano un'unica azione.
     if (isEarlyShift(effective)) add('wake_bright_light', wake);

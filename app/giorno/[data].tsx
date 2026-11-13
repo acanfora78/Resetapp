@@ -1,4 +1,5 @@
-import { format } from 'date-fns';
+import { Ionicons } from '@expo/vector-icons';
+import { addDays, format } from 'date-fns';
 import { it as itLocale } from 'date-fns/locale';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -10,7 +11,8 @@ import { Screen } from '@/components/Screen';
 import { ShiftBadge } from '@/components/ShiftBadge';
 import it from '@/i18n/it';
 import { errorText } from '@/lib/errors';
-import type { ShiftPatternRow, ShiftRow } from '@/lib/database.types';
+import type { EventRow, ShiftPatternRow, ShiftRow } from '@/lib/database.types';
+import { deleteEvent, fetchEvents } from '@/lib/userData';
 import { usePlanData } from '@/lib/planData';
 import { useUserId } from '@/lib/session';
 import {
@@ -24,8 +26,8 @@ import {
   shiftHoursFromTypes,
   toCyclePattern,
 } from '@/lib/shifts';
-import { fromISODate, shiftFromPattern } from '@/plan/cycle';
-import { capitalizeFirst } from '@/plan/time';
+import { fromISODate, shiftFromPattern, toISODate } from '@/plan/cycle';
+import { capitalizeFirst, formatClock } from '@/plan/time';
 import { isWorkShift } from '@/plan/types';
 import type { ShiftCode, ShiftHoursMap } from '@/plan/types';
 import { makeStyles, radius, spacing, useColors } from '@/theme';
@@ -45,8 +47,12 @@ export default function DayEditor() {
   const [codes, setCodes] = useState<ShiftCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [events, setEvents] = useState<EventRow[]>([]);
 
   useEffect(() => {
+    fetchEvents(date, addDays(date, 1))
+      .then((evs) => setEvents(evs.filter((e) => toISODate(new Date(e.inizio)) === data)))
+      .catch(() => {});
     Promise.all([fetchShifts(data, data), fetchActivePattern(), fetchShiftTypes()])
       .then(([rows, p, types]) => {
         setShift(rows[0] ?? null);
@@ -136,6 +142,37 @@ export default function DayEditor() {
             />
           ) : null}
 
+          {events.length > 0 ? (
+            <View style={{ gap: spacing.sm }}>
+              <AppText variant="label" secondary>
+                {it.events.listTitle}
+              </AppText>
+              {events.map((e) => (
+                <View key={e.id} style={[styles.option, { borderColor: colors.border }]}>
+                  <AppText variant="label" color={colors.accent}>
+                    {formatClock(new Date(e.inizio))}
+                  </AppText>
+                  <AppText variant="bodyMedium" style={{ flex: 1 }}>
+                    🎉 {e.titolo}
+                  </AppText>
+                  <Pressable
+                    onPress={() => run(() => deleteEvent(e.id))}
+                    hitSlop={10}
+                    accessibilityLabel={it.events.remove}
+                    style={{ minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <Ionicons name="trash-outline" size={20} color={colors.textSecondary} />
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+          ) : null}
+
+          <Button
+            variant="secondary"
+            title={it.events.quickButton}
+            onPress={() => router.replace({ pathname: '/evento', params: { d: data } })}
+          />
           <Button variant="ghost" title={it.common.cancel} onPress={() => router.back()} />
         </>
       )}

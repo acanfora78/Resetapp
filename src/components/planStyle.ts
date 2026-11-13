@@ -1,6 +1,6 @@
 import type { PlanItemKey } from '@/plan/types';
 
-type Category = 'sleep' | 'light' | 'caffeine' | 'nap' | 'meal' | 'move' | 'safety';
+type Category = 'sleep' | 'light' | 'caffeine' | 'nap' | 'meal' | 'move' | 'safety' | 'event';
 
 const CATEGORY: Record<PlanItemKey, Category> = {
   wake: 'light',
@@ -21,6 +21,9 @@ const CATEGORY: Record<PlanItemKey, Category> = {
   short_sleep: 'sleep',
   natural_light: 'light',
   light_activity: 'move',
+  event: 'event',
+  event_nap: 'nap',
+  event_caffeine: 'caffeine',
 };
 
 const STYLE: Record<Category, { icon: string; color: string }> = {
@@ -31,6 +34,7 @@ const STYLE: Record<Category, { icon: string; color: string }> = {
   meal: { icon: '🍽️', color: '#FF8A3D' },
   move: { icon: '🚶', color: '#6BD48F' },
   safety: { icon: '🚗', color: '#FF6B6B' },
+  event: { icon: '🎉', color: '#C58BFF' },
 };
 
 /** Icona e colore di un'azione del piano. */

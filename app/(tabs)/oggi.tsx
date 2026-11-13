@@ -251,7 +251,21 @@ export default function Today() {
               </Pressable>
             ) : null}
 
-            <Button variant="secondary" title={it.caffeine.quickButton} onPress={() => setCoffeeSheet(true)} />
+            <View style={styles.quick}>
+              <Button variant="secondary" title={it.caffeine.quickButton} onPress={() => setCoffeeSheet(true)} />
+              <View style={styles.quickRow}>
+                <Button
+                  variant="secondary"
+                  title={it.events.quickButton}
+                  onPress={() => router.push('/evento')}
+                />
+                <Button
+                  variant="secondary"
+                  title={it.vigilance.quickButton}
+                  onPress={() => router.push('/vigilanza')}
+                />
+              </View>
+            </View>
 
             <View style={styles.sectionHeader}>
               <AppText variant="label" secondary>
@@ -291,6 +305,8 @@ const useStyles = makeStyles((colors) => ({
   nightChip: { backgroundColor: colors.surfaceAlt, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 2 },
   card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md, gap: 4 },
   shiftRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  quick: { gap: spacing.sm },
+  quickRow: { gap: spacing.sm },
   transitionCard: { borderWidth: 1, borderColor: colors.accent, gap: 4 },
   nextDay: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   dot: { width: 10, height: 10, borderRadius: 5 },

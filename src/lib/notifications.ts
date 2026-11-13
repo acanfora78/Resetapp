@@ -10,6 +10,7 @@ import it from '@/i18n/it';
 import { planText } from '@/i18n/planText';
 import type { PlanContext } from '@/plan/context';
 import { toISODate } from '@/plan/cycle';
+import { RULES } from '@/plan/rules';
 import { notificationSchedule } from '@/plan/today';
 import { transitionReminders } from '@/plan/transitions';
 
@@ -97,11 +98,26 @@ async function doSync(ctx: PlanContext | null, profile: ProfileRow | null) {
     });
   }
 
+  // Fine turno di notte: "Prima di guidare: test di 30 secondi".
+  for (const r of notificationSchedule(ctx, now, done).filter((x) => x.key === 'drive_alert')) {
+    const at = new Date(r.date.getTime() - RULES.VIGILANCE_NOTIFY_BEFORE_END_MIN * 60000);
+    if (at <= now) continue;
+    await Notifications.scheduleNotificationAsync({
+      identifier: `vigilanza_${r.planDay}`,
+      content: { title: it.vigilance.notification.title, body: it.vigilance.notification.body, sound: true, data: { url: '/vigilanza' } },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: at,
+        ...(Platform.OS === 'android' ? { channelId: ANDROID_CHANNEL } : {}),
+      },
+    });
+  }
+
   for (const r of reminders) {
     const s = planText(r);
     await Notifications.scheduleNotificationAsync({
       identifier: r.id,
-      content: { title: s.title, body: s.why, sound: true },
+      content: { title: s.title, body: s.why, sound: true, data: { url: '/oggi' } },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
         date: r.date,
@@ -109,4 +125,14 @@ async function doSync(ctx: PlanContext | null, profile: ProfileRow | null) {
       },
     });
   }
+}
+
+/** Apre la schermata indicata dalla notifica toccata (es. il test di vigilanza). */
+export function listenNotificationTaps(open: (url: string) => void): () => void {
+  if (!supported) return () => {};
+  const sub = Notifications.addNotificationResponseReceivedListener((res) => {
+    const url = res.notification.request.content.data?.url;
+    if (typeof url === 'string') open(url);
+  });
+  return () => sub.remove();
 }

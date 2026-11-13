@@ -89,6 +89,39 @@ export const RULES = {
   CAFFEINE_SLEEP_THRESHOLD_MG: 50,
   /** Ore mostrate nel grafico. */
   CAFFEINE_CHART_HOURS: 24,
+
+  // --- "Posso andarci?" -------------------------------------------------------
+  /** Sotto queste ore di sonno prima di un turno l'evento è sconsigliato. */
+  EVENT_MIN_SLEEP_MIN: 5 * 60,
+  /** Nei giorni liberi la sveglia si può spostare al massimo di tot minuti. */
+  EVENT_MAX_WAKE_SHIFT_MIN: 90,
+  /** Pisolino suggerito prima di un evento serale che accorcia il sonno. */
+  EVENT_NAP_MIN: 20,
+  /** Il pisolino suggerito finisce tot minuti prima dell'inizio dell'evento. */
+  EVENT_NAP_END_BEFORE_MIN: 120,
+
+  // --- Test di vigilanza --------------------------------------------------------
+  VIGILANCE_DURATION_S: 30,
+  VIGILANCE_MIN_INTERVAL_MS: 1000,
+  VIGILANCE_MAX_INTERVAL_MS: 4000,
+  /** Riferimento generico finché non ci sono 3 test validi. */
+  VIGILANCE_GENERIC_BASELINE_MS: 300,
+  /** Test validi per il riferimento personale: nei giorni di riposo o a metà mattina. */
+  VIGILANCE_BASELINE_TESTS: 3,
+  VIGILANCE_BASELINE_FROM: '10:00',
+  VIGILANCE_BASELINE_TO: '12:00',
+  /** Soglie rispetto al riferimento: +20% giallo, +40% rosso. */
+  VIGILANCE_YELLOW_PCT: 20,
+  VIGILANCE_RED_PCT: 40,
+  /** Promemoria del test: tot minuti prima della fine del turno di notte. */
+  VIGILANCE_NOTIFY_BEFORE_END_MIN: 10,
+
+  // --- Debito di sonno e recupero ---------------------------------------------
+  SLEEP_DEBT_DAYS: 7,
+  /** Recupero nei giorni di riposo: al massimo tot minuti in più a notte… */
+  RECOVERY_MAX_EXTRA_MIN: 90,
+  /** …e sveglia non oltre quest'ora. */
+  RECOVERY_LATEST_WAKE: '10:00',
 } as const;
 
 /** Porzioni di caffeina (mg) per tipo di bevanda: valori indicativi, modificabili. */
@@ -120,4 +153,7 @@ export const NOTIFY: Record<PlanItemKey, boolean> = {
   short_sleep: true,
   natural_light: true,
   light_activity: false,
+  event: false,
+  event_nap: true,
+  event_caffeine: true,
 };

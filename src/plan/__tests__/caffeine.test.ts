@@ -30,9 +30,12 @@ describe('caffeineAt', () => {
   });
 
   it('attraversa la mezzanotte e il cambio dell’ora legale (tempo reale trascorso)', () => {
-    // 28 marzo 22:00 → 29 marzo 04:00 sono 5 ore reali (alle 02:00 si salta alle 03:00)
-    const doses = [{ at: new Date(2026, 2, 28, 22, 0), mg: 80 }];
-    expect(caffeineAt(doses, new Date(2026, 2, 29, 4, 0))).toBeCloseTo(40);
+    // In Italia 28 marzo 22:00 → 29 marzo 04:00 sono 5 ore reali (alle 02:00 si salta alle 03:00):
+    // il calcolo usa il tempo reale trascorso, in qualsiasi fuso orario.
+    const from = new Date(2026, 2, 28, 22, 0);
+    const to = new Date(2026, 2, 29, 4, 0);
+    const realHours = (to.getTime() - from.getTime()) / 3600000;
+    expect(caffeineAt([{ at: from, mg: 80 }], to)).toBeCloseTo(80 * Math.pow(0.5, realHours / 5));
   });
 });
 

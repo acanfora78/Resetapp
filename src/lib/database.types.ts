@@ -90,6 +90,25 @@ export type CaffeineLogRow = {
   created_at: string;
 };
 
+export type EventRow = {
+  id: string;
+  user_id: string;
+  titolo: string;
+  inizio: string;
+  fine: string;
+  created_at: string;
+};
+
+export type VigilanceTestRow = {
+  id: string;
+  user_id: string;
+  fatto_at: string;
+  mediana_ms: number;
+  errori: number;
+  esito: 'green' | 'yellow' | 'red';
+  valido_riferimento: boolean;
+};
+
 export type SubscriptionRow = {
   user_id: string;
   piattaforma: 'ios' | 'android';
@@ -110,10 +129,12 @@ export type Database = {
         Omit<ShiftPatternRow, 'id' | 'created_at' | 'attivo'> & { attivo?: boolean }
       >;
       shifts: Table<ShiftRow, Omit<ShiftRow, 'id'> & { id?: string }>;
-      sleep_logs: Table<SleepLogRow>;
+      sleep_logs: Table<SleepLogRow, Omit<SleepLogRow, 'id' | 'created_at' | 'note'> & { note?: string | null }>;
       plan_checks: Table<PlanCheckRow>;
       daily_scores: Table<DailyScoreRow>;
       subscriptions: Table<SubscriptionRow>;
+      events: Table<EventRow, Omit<EventRow, 'id' | 'created_at'>>;
+      vigilance_tests: Table<VigilanceTestRow, Omit<VigilanceTestRow, 'id'>>;
       caffeine_logs: Table<CaffeineLogRow, Omit<CaffeineLogRow, 'id' | 'created_at'>>;
     };
     Views: Record<string, never>;

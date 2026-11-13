@@ -3,6 +3,8 @@ import { addDays } from 'date-fns';
 import type { PlanContext } from '@/plan/context';
 import { resolveShift, toISODate } from '@/plan/cycle';
 import { RULES } from '@/plan/rules';
+import { eventPlanItems } from '@/plan/events';
+import { recoveryPlan, sleepDebt } from '@/plan/sleepDebt';
 import { toClock } from '@/plan/time';
 
 import type { ProfileRow } from './database.types';
@@ -13,6 +15,7 @@ import {
   shiftHoursFromTypes,
   toCyclePattern,
 } from './shifts';
+import { fetchEvents, fetchSleepLogs } from './userData';
 
 export { planForDay } from '@/plan/context';
 export type { PlanContext } from '@/plan/context';
@@ -30,11 +33,29 @@ export async function loadPlanContext(
   ]);
   const stored = new Map(shifts.map((s) => [s.data, s.codice]));
   const cycle = pattern ? toCyclePattern(pattern) : null;
-  return {
+  const sleepNeedMin = profile.fabbisogno_sonno_min || RULES.DEFAULT_SLEEP_NEED_MIN;
+  const base: PlanContext = {
     shiftHours: shiftHoursFromTypes(types),
     commuteMin: profile.tragitto_min,
     preferredWake: toClock(profile.sveglia_preferita, '08:00'),
-    sleepNeedMin: profile.fabbisogno_sonno_min || RULES.DEFAULT_SLEEP_NEED_MIN,
+    sleepNeedMin,
     shiftOn: (d) => resolveShift(stored, cycle, d),
+  };
+
+  // Diario ed eventi: se non si caricano, il piano resta quello di base.
+  const [logs, events] = await Promise.all([
+    fetchSleepLogs(toISODate(addDays(around, -RULES.SLEEP_DEBT_DAYS))).catch(() => []),
+    fetchEvents(addDays(around, -2), addDays(around, daysAhead)).catch(() => []),
+  ]);
+  const debt = sleepDebt(logs.map((l) => ({ data: l.data, minutes: l.minuti_dormiti })), sleepNeedMin, around);
+  const recovery = recoveryPlan(debt.totalMin, around, base.shiftOn);
+  const eventItems = eventPlanItems(
+    base,
+    events.map((e) => ({ title: e.titolo, start: new Date(e.inizio), end: new Date(e.fine) })),
+  );
+  return {
+    ...base,
+    recoveryOn: (d) => recovery.get(toISODate(d)) ?? 0,
+    extraItems: (d) => eventItems.get(toISODate(d)) ?? [],
   };
 }

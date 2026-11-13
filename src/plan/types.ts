@@ -39,7 +39,10 @@ export type PlanItemKey =
   | 'day_sleep'
   | 'short_sleep'
   | 'natural_light'
-  | 'light_activity';
+  | 'light_activity'
+  | 'event'
+  | 'event_nap'
+  | 'event_caffeine';
 
 /**
  * Tipo di giornata, usato per scegliere la spiegazione ("perché") di ogni azione.
@@ -56,6 +59,8 @@ export interface PlanItem {
   time: Date;
   /** Se l'azione va notificata. */
   notify: boolean;
+  /** Testo libero (es. titolo dell'evento), al posto del titolo standard. */
+  label?: string;
 }
 
 export interface PlanInput {
@@ -70,6 +75,8 @@ export interface PlanInput {
   commuteMin: number;
   preferredWake: ClockTime;
   sleepNeedMin: number;
+  /** Recupero del debito: minuti di sonno in più stamattina (solo giorni di riposo). */
+  recoveryExtraMin?: number;
   /** Minuti dormiti la notte prima, se registrati nel diario. */
   lastNightSleepMin?: number | null;
 }

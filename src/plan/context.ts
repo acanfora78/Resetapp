@@ -10,10 +10,14 @@ export interface PlanContext {
   preferredWake: ClockTime;
   sleepNeedMin: number;
   shiftOn: (d: Date) => ShiftCode | null;
+  /** Minuti di recupero del debito per giorno (solo riposi). */
+  recoveryOn?: (d: Date) => number;
+  /** Azioni aggiuntive per giorno (es. eventi pianificati e i loro accorgimenti). */
+  extraItems?: (d: Date) => PlanItem[];
 }
 
 export function planForDay(ctx: PlanContext, day: Date): PlanItem[] {
-  return computePlan({
+  const base = computePlan({
     date: day,
     prevShift: ctx.shiftOn(addDays(day, -1)),
     shift: ctx.shiftOn(day),
@@ -23,7 +27,11 @@ export function planForDay(ctx: PlanContext, day: Date): PlanItem[] {
     commuteMin: ctx.commuteMin,
     preferredWake: ctx.preferredWake,
     sleepNeedMin: ctx.sleepNeedMin,
+    recoveryExtraMin: ctx.recoveryOn?.(day) ?? 0,
   });
+  const extra = ctx.extraItems?.(day) ?? [];
+  if (extra.length === 0) return base;
+  return [...base, ...extra].sort((a, b) => a.time.getTime() - b.time.getTime());
 }
 
 export interface PlanPreview {

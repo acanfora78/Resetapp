@@ -268,6 +268,101 @@ export const it = {
     note: 'Stima educativa: ogni persona smaltisce la caffeina in modo diverso. Non sostituisce il parere medico.',
   },
 
+  events: {
+    quickButton: '🎉 Posso andarci?',
+    screenTitle: 'Posso andarci?',
+    subtitle: 'Cena, compleanno, una domenica fuori: vediamo come incastrarlo con i turni.',
+    titleLabel: 'Cosa',
+    titlePlaceholder: 'Es. Cena da Luca',
+    dayLabel: 'Giorno',
+    startLabel: 'Inizio',
+    durationLabel: 'Durata',
+    duration: (min: number) => `${String(min / 60).replace('.', ',')} h`,
+    check: 'Valuta',
+    save: 'Salva l’evento',
+    saved: 'Evento salvato: lo trovi nel calendario e nel piano di quel giorno.',
+    verdict: {
+      yes: 'Sì',
+      yes_tips: 'Sì, con qualche accorgimento',
+      no: 'Sconsigliato',
+      on_shift: 'Sei in turno',
+    },
+    reason: {
+      on_shift: (shift: string) => `In quell’orario sei in turno (${shift}), tragitto compreso.`,
+      free: 'Non tocca né i turni né il sonno: goditela.',
+      before_early: (end: string, shift: string, start: string, sleep: string) =>
+        `Finisce alle ${end} e domani alle ${start} hai ${shift}: dormiresti ${sleep}.`,
+      during_day_sleep: 'Cade nel sonno principale dopo la notte, e stanotte lavori ancora: meglio rinunciare o spostarlo.',
+      during_short_sleep: 'Cade nel sonno breve dello smonto: si può fare, poi dormi subito dopo.',
+      pre_night_nap: (dep: string) => `Cade nel pisolino prima della notte (si parte alle ${dep}).`,
+      late_free: (wake: string) => `Domani hai margine: sposta la sveglia alle ${wake}.`,
+      cuts_sleep: (sleep: string) => `Dormiresti solo ${sleep}.`,
+    },
+    tip: {
+      nap: (time: string, min: number) => `Pisolino di ${min} minuti alle ${time}.`,
+      wake: (time: string) => `Sveglia alle ${time}, non più tardi: il ritmo resta stabile.`,
+      bed: (time: string) => `A letto appena possibile, entro le ${time}.`,
+      caffeine: (time: string) => `Niente caffè dopo le ${time}.`,
+      sleep_after: (time: string) => `Sonno breve subito dopo, dalle ${time}.`,
+      next_day: (time: string) => `Domani luce forte appena sveglio e, se puoi, 20 minuti di pisolino alle ${time}.`,
+    },
+    hours: (min: number) => {
+      const h = Math.floor(min / 60);
+      const m = min % 60;
+      return m ? `${h} ore e ${m === 30 ? 'mezza' : `${m} minuti`}` : `${h} ore`;
+    },
+    listTitle: 'Eventi',
+    remove: 'Elimina evento',
+    tooLong: 'La durata massima è di 24 ore.',
+    titleMissing: 'Scrivi cosa devi fare.',
+  },
+
+  vigilance: {
+    quickButton: '🎯 Test prima di guidare',
+    screenTitle: 'Test di vigilanza',
+    intro: 'Tocca lo schermo appena il cerchio si accende. Dura 30 secondi.',
+    start: 'Inizia il test',
+    waiting: 'Aspetta…',
+    tap: 'Tocca!',
+    tooSoon: 'Troppo presto',
+    remaining: (s: number) => `${s} s`,
+    result: {
+      green: 'Reazioni nella tua norma.',
+      yellow: 'Sei più lento del solito. Se puoi, fai 15–20 minuti di pisolino prima di metterti alla guida.',
+      red: 'Sei molto più lento del solito. Valuta di non guidare adesso: pisolino o fatti venire a prendere.',
+    },
+    medianLabel: (ms: number) => `Tempo di reazione: ${ms} ms`,
+    baselineLabel: (ms: number) => `Il tuo riferimento: ${ms} ms`,
+    genericBaseline: 'Riferimento generico: diventa personale dopo 3 test fatti nei giorni di riposo o a metà mattina.',
+    errors: (n: number) => (n === 1 ? '1 tocco in anticipo' : `${n} tocchi in anticipo`),
+    again: 'Rifai il test',
+    disclaimer:
+      'Questo test è un indicatore, non un esame medico e non certifica l’idoneità alla guida. Se ti senti assonnato, non guidare.',
+    notification: { title: 'Prima di guidare', body: 'Test di 30 secondi: controlla quanto sei reattivo.' },
+  },
+
+  diary: {
+    title: 'Diario',
+    quickTitle: 'Com’è andata la notte?',
+    bed: 'A letto',
+    wake: 'Sveglia',
+    energy: 'Energia',
+    energyLabels: ['Ko', 'Bassa', 'Così così', 'Buona', 'Al top'],
+    note: 'Nota (facoltativa)',
+    notePlaceholder: 'Es. rumori, sveglia a metà…',
+    save: 'Salva',
+    saved: 'Salvato.',
+    invalid: 'L’ora di sveglia deve essere dopo l’ora a letto.',
+    debtTitle: 'Debito di sonno',
+    debtWeek: (s: string) => `Questa settimana: ${s}`,
+    noDebt: 'Questa settimana sei in pari.',
+    debtNote: 'Il debito non si recupera tutto in una notte: lo distribuiamo sui prossimi riposi.',
+    estimateNote: 'Stima educativa, non sostituisce il parere medico.',
+    chartTitle: 'Ore dormite, ultimi 7 giorni',
+    needLine: 'Fabbisogno',
+    noData: 'Nessun dato',
+  },
+
   phoneCalendar: {
     calendarName: 'Reset – Turni',
     eventNote: 'Turno inserito da Reset.',
@@ -475,6 +570,18 @@ export const it = {
         whyBy: {
           first_rest: 'Una camminata all’aperto aiuta a scaricare la stanchezza dei turni.',
         },
+      },
+      event: {
+        title: 'Evento',
+        why: 'L’hai pianificato con “Posso andarci?”: il piano tiene conto degli accorgimenti.',
+      },
+      event_nap: {
+        title: 'Pisolino prima dell’evento',
+        why: 'Stasera fai tardi: un pisolino breve adesso ti fa arrivare più lucido.',
+      },
+      event_caffeine: {
+        title: 'Stop caffeina (evento)',
+        why: 'Stasera vai a letto più tardi: niente caffè da adesso, così ti addormenti subito.',
       },
     } satisfies Record<PlanItemKey, PlanItemText>,
   },

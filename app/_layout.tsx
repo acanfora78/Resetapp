@@ -5,13 +5,14 @@ import {
   Poppins_700Bold,
   useFonts,
 } from '@expo-google-fonts/poppins';
-import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, router, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { NightModeProvider } from '@/lib/nightMode';
+import { listenNotificationTaps } from '@/lib/notifications';
 import { OnboardingDraftProvider } from '@/lib/onboardingDraft';
 import { PlanDataProvider } from '@/lib/planData';
 import { SessionProvider, useSession } from '@/lib/session';
@@ -28,6 +29,12 @@ function RootNavigator() {
   useEffect(() => {
     if (!loading) SplashScreen.hideAsync().catch(() => {});
   }, [loading]);
+
+  // Tocco su una notifica: apre la schermata collegata (solo se l'app è pronta).
+  useEffect(() => {
+    if (!signedIn || !onboarded) return;
+    return listenNotificationTaps((url) => router.push(url as never));
+  }, [signedIn, onboarded]);
 
   // Il tema della navigazione segue la palette attiva (giorno o modalità notte).
   const navTheme = useMemo(
@@ -69,6 +76,8 @@ function RootNavigator() {
         <Stack.Screen name="impostazioni/sonno" />
         <Stack.Screen name="caffeina" />
         <Stack.Screen name="transizione" />
+        <Stack.Screen name="evento" />
+        <Stack.Screen name="vigilanza" options={{ gestureEnabled: false }} />
       </Stack.Protected>
     </Stack>
     </ThemeProvider>

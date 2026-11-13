@@ -54,6 +54,16 @@ Reset aiuta chi lavora su turni a rotazione con le notti a dormire abbastanza e 
 - **Caffeina residua:** pulsante "☕ Ho preso un caffè" su Oggi (Espresso, Moka/caffè lungo, Energy drink, Tè/Cola; porzioni in `CAFFEINE_DOSES_MG`). Stima a decadimento esponenziale con emivita `CAFFEINE_HALF_LIFE_H` (5 h), grafico delle prossime 24 h con soglia sonno (`CAFFEINE_SLEEP_THRESHOLD_MG`) e ora a letto del piano, messaggio sulla percentuale residua. Avviso gentile se il caffè è dopo lo "Stop caffeina". Nota: "Stima educativa: ogni persona smaltisce la caffeina in modo diverso."
 - **Turni nel calendario del telefono:** interruttore in Profilo; calendario dedicato "Reset – Turni" con i turni dei prossimi 60 giorni (orari veri per i turni di lavoro, tutto il giorno per Smonto e Riposo), aggiornato a ogni modifica; disattivandolo il calendario viene rimosso. Preferenza del dispositivo.
 
+### Funzioni che differenziano Reset (Fase C)
+- **"Posso andarci?"** (Oggi e Calendario): titolo, giorno, inizio e durata. Logica pura in `src/plan/events.ts`: verdetto "Sì" / "Sì, con qualche accorgimento" / "Sconsigliato" / "Sei in turno", motivo in una frase e accorgimenti concreti (pisolino, sveglia, ora a letto, stop caffeina, giorno dopo). Casi: evento nel turno (tragitto compreso), nel sonno principale dopo una notte, nel sonno breve dello smonto, sul pisolino prima della notte, sera prima di un turno del mattino (sotto `EVENT_MIN_SLEEP_MIN` sconsigliato), giorno di riposo (sveglia spostata al massimo di `EVENT_MAX_WAKE_SHIFT_MIN`). Se confermato si salva (tabella `events`), compare nel calendario e l'evento e i suoi accorgimenti entrano nel piano del giorno.
+- **Test di vigilanza** (Oggi, e notifica 10 minuti prima della fine del turno di notte): 30 secondi, segnale a intervalli casuali di 1–4 s, tempi di reazione e partenze anticipate, schermo sempre acceso, vibrazione a ogni tocco. Riferimento personale: mediana dei primi 3 test validi (giorni di riposo o 10:00–12:00), altrimenti valore generico dichiarato. Esito verde / giallo (+20%) / rosso (+40%). Tabella `vigilance_tests`. Testo fisso: indicatore, non esame medico, non certifica l'idoneità alla guida.
+- *Rimandati:* stato "Sto dormendo" condivisibile e import dei turni da foto/PDF.
+
+### Debito di sonno (Fase D)
+- **Diario rapido** (scheda Diario): ora a letto, sveglia, energia 1–5, nota facoltativa (tabella `sleep_logs`, una voce per giorno di risveglio).
+- **Debito:** somma di (fabbisogno − ore dormite) degli ultimi 7 giorni, solo valori positivi; numero ("Questa settimana: −6 h 30") e grafico a barre per giorno con la linea del fabbisogno.
+- **Recupero:** nei prossimi giorni di riposo la sveglia si sposta più tardi, al massimo `RECOVERY_MAX_EXTRA_MIN` (90) a notte e non oltre `RECOVERY_LATEST_WAKE` (10:00), finché il debito non è distribuito. Nota: "Il debito non si recupera tutto in una notte: lo distribuiamo sui prossimi riposi."
+
 ### Recupero
 7. **Routine post-notte guidata:** checklist di decompressione (doccia tiepida, luce bassa, telefono lontano, stanza buia e fresca) più un audio di rilassamento di circa 5–10 minuti.
 8. **Timer pisolino strategico:** scegli 20 minuti (pisolino breve) o 90 minuti (ciclo completo), con sveglia.
@@ -168,6 +178,8 @@ Ogni tabella ha `user_id` collegato a `auth.users`, con **Row Level Security att
 | `sleep_logs` | `id`, `user_id`, `data` (date), `a_letto` (timestamptz), `sveglia` (timestamptz), `minuti_dormiti` (int), `energia` (1–5), `note` |
 | `plan_checks` | `id`, `user_id`, `data` (date), `item_key` (text), `fatto_at` (timestamptz) |
 | `daily_scores` | `id`, `user_id`, `data` (date), `punteggio` (0–100) |
+| `events` | `id`, `user_id`, `titolo`, `inizio` (timestamptz), `fine` (timestamptz) |
+| `vigilance_tests` | `id`, `user_id`, `fatto_at`, `mediana_ms`, `errori`, `esito` (green/yellow/red), `valido_riferimento` (bool) |
 | `caffeine_logs` | `id`, `user_id`, `consumato_at` (timestamptz), `tipo` (espresso/moka/energy/te_cola), `quantita_mg` (int) |
 | `subscriptions` | `user_id`, `piattaforma` (ios/android), `prodotto` (mensile/annuale), `stato` (attivo/scaduto/annullato/rimborsato), `scadenza` (timestamptz), `transaction_id_originale`, `aggiornato_at` |
 

@@ -23,6 +23,7 @@ import it from '@/i18n/it';
 import { errorText } from '@/lib/errors';
 import type { ShiftRow } from '@/lib/database.types';
 import { fetchActivePattern, fetchShifts, generateRange, toCyclePattern } from '@/lib/shifts';
+import { fetchEvents } from '@/lib/userData';
 import { toISODate } from '@/plan/cycle';
 import { SHIFT_CODES } from '@/plan/types';
 import { makeStyles, radius, spacing, useColors } from '@/theme';
@@ -35,6 +36,7 @@ export default function Calendar() {
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
   const [shifts, setShifts] = useState<Map<string, ShiftRow>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [eventDays, setEventDays] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const requestId = useRef(0);
 
@@ -51,6 +53,8 @@ export default function Calendar() {
       if (pattern) await generateRange(toCyclePattern(pattern), gridStart, gridEnd);
       const rows = await fetchShifts(toISODate(gridStart), toISODate(gridEnd));
       if (id === requestId.current) setShifts(new Map(rows.map((r) => [r.data, r])));
+      const evs = await fetchEvents(gridStart, addDays(gridEnd, 1)).catch(() => []);
+      if (id === requestId.current) setEventDays(new Set(evs.map((e) => toISODate(new Date(e.inizio)))));
     } catch (e) {
       console.warn('Calendario non caricato', e);
       if (id === requestId.current) setError(errorText(e));
@@ -114,7 +118,11 @@ export default function Calendar() {
                   {format(d, 'd')}
                 </AppText>
                 {shift ? <ShiftBadge code={shift.codice} size={24} /> : <View style={{ height: 24 }} />}
-                {shift?.manuale ? <View style={styles.manualDot} /> : <View style={styles.dotSpacer} />}
+                <View style={styles.dots}>
+                  {shift?.manuale ? <View style={styles.manualDot} /> : null}
+                  {eventDays.has(iso) ? <View style={styles.eventDot} /> : null}
+                  {!shift?.manuale && !eventDays.has(iso) ? <View style={styles.dotSpacer} /> : null}
+                </View>
               </View>
             </Pressable>
           );
@@ -139,11 +147,16 @@ export default function Calendar() {
           </View>
         ))}
         <View style={styles.legendItem}>
+          <View style={styles.eventDot} />
+          <AppText variant="caption">{it.events.listTitle}</AppText>
+        </View>
+        <View style={styles.legendItem}>
           <View style={styles.manualDot} />
           <AppText variant="caption">{it.calendar.manualLegend}</AppText>
         </View>
       </View>
 
+      <Button variant="secondary" title={it.events.quickButton} onPress={() => router.push('/evento')} />
       <Button
         variant="secondary"
         title={it.calendar.pattern}
@@ -171,6 +184,8 @@ const useStyles = makeStyles((colors) => ({
   today: { borderWidth: 1.5, borderColor: colors.accent },
   manualDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.accent },
   dotSpacer: { width: 6, height: 6 },
+  dots: { flexDirection: 'row', gap: 3 },
+  eventDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#C58BFF' },
   error: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, gap: 4 },
   legend: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginTop: spacing.sm },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
