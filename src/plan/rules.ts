@@ -122,6 +122,17 @@ export const RULES = {
   RECOVERY_MAX_EXTRA_MIN: 90,
   /** …e sveglia non oltre quest'ora. */
   RECOVERY_LATEST_WAKE: '10:00',
+
+  // --- Punteggio di recupero e serie ------------------------------------------
+  /** Pesi del punteggio (somma 100): sonno, energia, azioni del piano. */
+  SCORE_WEIGHT_SLEEP: 50,
+  SCORE_WEIGHT_ENERGY: 30,
+  SCORE_WEIGHT_PLAN: 20,
+  /** Serie: giorni consecutivi con almeno questa percentuale di azioni fatte. */
+  STREAK_MIN_DONE_PCT: 70,
+
+  // --- Timer pisolino -----------------------------------------------------------
+  NAP_TIMER_OPTIONS_MIN: [20, 90],
 } as const;
 
 /** Porzioni di caffeina (mg) per tipo di bevanda: valori indicativi, modificabili. */

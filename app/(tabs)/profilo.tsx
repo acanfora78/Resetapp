@@ -2,8 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
+import { format } from 'date-fns';
+import { it as itLocale } from 'date-fns/locale';
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, View } from 'react-native';
+import { Alert, Linking, Platform, Pressable, View } from 'react-native';
 
 import { Toggle } from '@/components/Toggle';
 import { AppText } from '@/components/AppText';
@@ -12,7 +14,12 @@ import { Screen } from '@/components/Screen';
 import { Segmented } from '@/components/Segmented';
 import { LEGAL_LINKS } from '@/content/legal';
 import it from '@/i18n/it';
+import { APP } from '@/constants/app';
+import { deleteAccount } from '@/lib/account';
 import { signOut } from '@/lib/auth';
+import { restore } from '@/lib/iap';
+import { shareMonthlyReport } from '@/lib/report';
+import { useSubscription } from '@/lib/subscription';
 import { errorText } from '@/lib/errors';
 import { useNightMode } from '@/lib/nightMode';
 import type { NightModePref } from '@/lib/nightMode';
@@ -74,6 +81,46 @@ export default function Profile() {
       },
     ]);
   };
+
+  const sub = useSubscription();
+
+  const onRestore = async () => {
+    if (!APP.PAYWALL_ENFORCED) return Alert.alert(it.onboarding.paywall.restore, it.onboarding.paywall.restoreSoon);
+    try {
+      const ok = await restore();
+      await sub.refresh();
+      if (!ok) Alert.alert(it.onboarding.paywall.restore, it.onboarding.paywall.restoreNone);
+    } catch (e) {
+      Alert.alert(it.common.error, errorText(e));
+    }
+  };
+
+  const onReport = async () => {
+    if (!profile) return;
+    try {
+      await shareMonthlyReport(profile);
+    } catch (e) {
+      Alert.alert(it.common.error, errorText(e));
+    }
+  };
+
+  const onDelete = () =>
+    Alert.alert(it.account.deleteTitle, it.account.deleteBody, [
+      { text: it.common.cancel, style: 'cancel' },
+      {
+        text: it.account.deleteConfirm,
+        style: 'destructive',
+        onPress: () =>
+          Alert.alert(it.account.deleteFinalTitle, it.account.deleteFinalBody, [
+            { text: it.common.cancel, style: 'cancel' },
+            {
+              text: it.account.deleteConfirm,
+              style: 'destructive',
+              onPress: () => deleteAccount().catch((e) => Alert.alert(it.common.error, errorText(e))),
+            },
+          ]),
+      },
+    ]);
 
   const prefs = notificationPrefs(profile);
   const notifOn = prefs.abilitate === true;
@@ -160,6 +207,29 @@ export default function Profile() {
         </View>
       </Section>
 
+      <Section title={it.profile.sections.subscription}>
+        <View style={styles.inner}>
+          <AppText variant="bodyMedium">
+            {sub.active && sub.row
+              ? it.profile.subscriptionActive(
+                  it.profile.planNames[sub.row.prodotto],
+                  sub.row.scadenza ? format(new Date(sub.row.scadenza), 'd MMMM yyyy', { locale: itLocale }) : '',
+                )
+              : it.profile.subscriptionNone}
+          </AppText>
+        </View>
+        <Row
+          icon="card-outline"
+          label={it.profile.manageSubscription}
+          onPress={() => Linking.openURL(Platform.OS === 'android' ? APP.MANAGE_SUBSCRIPTIONS_URL.android : APP.MANAGE_SUBSCRIPTIONS_URL.ios)}
+        />
+        <Row icon="refresh-outline" label={it.onboarding.paywall.restore} onPress={onRestore} />
+      </Section>
+
+      <Section title={it.profile.sections.data}>
+        <Row icon="document-outline" label={it.report.button} onPress={onReport} />
+      </Section>
+
       <Section title={it.profile.sections.info}>
         <Row icon="document-text-outline" label={it.profile.terms} onPress={() => WebBrowser.openBrowserAsync(LEGAL_LINKS.terms)} />
         <Row icon="shield-checkmark-outline" label={it.profile.privacy} onPress={() => WebBrowser.openBrowserAsync(LEGAL_LINKS.privacy)} />
@@ -174,6 +244,7 @@ export default function Profile() {
         </AppText>
       ) : null}
       <Button variant="secondary" title={it.profile.signOut} onPress={signOut} />
+      <Button variant="danger" title={it.account.deleteButton} onPress={onDelete} />
       <AppText variant="caption" center>
         {it.profile.version(Constants.expoConfig?.version ?? '')}
       </AppText>

@@ -1,7 +1,7 @@
 import { addDays, differenceInCalendarDays, format, isSameDay, startOfDay } from 'date-fns';
 import { it as itLocale } from 'date-fns/locale';
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -9,6 +9,7 @@ import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
 import { CaffeineSheet } from '@/components/CaffeineSheet';
 import { PlanChecklist } from '@/components/PlanChecklist';
+import { ScoreRing } from '@/components/ScoreRing';
 import { ShiftBadge } from '@/components/ShiftBadge';
 import it from '@/i18n/it';
 import { toDoses } from '@/lib/caffeine';
@@ -21,6 +22,9 @@ import { usePlanData } from '@/lib/planData';
 import { updateProfile } from '@/lib/profile';
 import { useSession, useUserId } from '@/lib/session';
 import { useCaffeine } from '@/lib/useCaffeine';
+import type { SleepLogRow } from '@/lib/database.types';
+import { fetchSleepLogs, saveDailyScore } from '@/lib/userData';
+import { recoveryScore } from '@/plan/score';
 import { caffeineVerdict } from '@/plan/caffeine';
 import { upcomingTransition } from '@/plan/transitions';
 import { planForDay } from '@/plan/context';
@@ -45,6 +49,17 @@ export default function Today() {
   const [done, setDone] = useState<Set<PlanItemKey>>(new Set());
   const [refreshing, setRefreshing] = useState(false);
   const [coffeeSheet, setCoffeeSheet] = useState(false);
+  const [todayLog, setTodayLog] = useState<SleepLogRow | null>(null);
+
+  // Diario di stanotte, per il punteggio di recupero.
+  useFocusEffect(
+    useCallback(() => {
+      const iso = toISODate(new Date());
+      fetchSleepLogs(iso)
+        .then((rows) => setTodayLog(rows.find((r) => r.data === iso) ?? null))
+        .catch(() => {});
+    }, []),
+  );
   const caffeine = useCaffeine(userId, ctx);
 
   // L'orario "adesso" si aggiorna ogni minuto e quando si torna sulla schermata.
@@ -96,6 +111,13 @@ export default function Today() {
     }
   };
 
+  const scoreRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (score === null || score === scoreRef.current) return;
+    scoreRef.current = score;
+    saveDailyScore(userId, toISODate(new Date()), score).catch(() => {});
+  });
+
   const onRefresh = async () => {
     setRefreshing(true);
     setNow(new Date());
@@ -127,6 +149,16 @@ export default function Today() {
   const hours = ctx && shift && isWorkShift(shift) ? ctx.shiftHours[shift] : null;
   const { next, pending, completed } = splitChecklist(items, done, now);
   const transition = ctx ? upcomingTransition(ctx, now) : null;
+  const score =
+    todayLog && !isYesterday
+      ? recoveryScore({
+          sleptMin: todayLog.minuti_dormiti,
+          needMin: ctx?.sleepNeedMin ?? 450,
+          energy: todayLog.energia,
+          done: completed.length,
+          total: items.length,
+        })
+      : null;
   const coffee = ctx && caffeine.rows.length > 0 ? caffeineVerdict(ctx, toDoses(caffeine.rows), now) : null;
   const doneCount = completed.length;
 
@@ -194,8 +226,8 @@ export default function Today() {
                   </AppText>
                 </View>
               </View>
-              {/* Spazio a destra riservato all'anello del punteggio di recupero (Fase 4). */}
-              <RecoveryScoreSlot />
+              {/* Anello del punteggio di recupero (serve il diario della notte). */}
+              {score !== null ? <ScoreRing score={score} /> : null}
             </View>
 
             {cardState === 'full' ? (
@@ -254,6 +286,8 @@ export default function Today() {
             <View style={styles.quick}>
               <Button variant="secondary" title={it.caffeine.quickButton} onPress={() => setCoffeeSheet(true)} />
               <View style={styles.quickRow}>
+                <Button variant="secondary" title={it.nap.quickButton} onPress={() => router.push('/pisolino')} />
+                <Button variant="secondary" title={it.routine.quickButton} onPress={() => router.push('/routine')} />
                 <Button
                   variant="secondary"
                   title={it.events.quickButton}
@@ -319,7 +353,3 @@ const useStyles = makeStyles((colors) => ({
   fill: { height: 6, borderRadius: radius.pill, backgroundColor: colors.accent },
 }));
 
-/** Qui comparirà l'anello del punteggio di recupero quando sarà disponibile. */
-function RecoveryScoreSlot() {
-  return null;
-}

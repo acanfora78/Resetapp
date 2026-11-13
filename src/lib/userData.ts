@@ -67,3 +67,18 @@ export async function saveSleepLog(
   );
   if (error) throw error;
 }
+
+// --- Punteggio di recupero --------------------------------------------------------
+
+export async function saveDailyScore(userId: string, data: string, punteggio: number) {
+  const { error } = await supabase
+    .from('daily_scores')
+    .upsert({ user_id: userId, data, punteggio }, { onConflict: 'user_id,data' });
+  if (error) throw error;
+}
+
+export async function fetchDailyScores(fromISO: string) {
+  const { data, error } = await supabase.from('daily_scores').select('*').gte('data', fromISO).order('data');
+  if (error) throw error;
+  return data ?? [];
+}

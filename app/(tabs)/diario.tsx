@@ -16,6 +16,7 @@ import { errorText } from '@/lib/errors';
 import { usePlanData } from '@/lib/planData';
 import { useSession, useUserId } from '@/lib/session';
 import { fetchSleepLogs, saveSleepLog } from '@/lib/userData';
+import { loadStreak } from '@/lib/streak';
 import { toISODate } from '@/plan/cycle';
 import { RULES } from '@/plan/rules';
 import { formatDebt, sleepDebt } from '@/plan/sleepDebt';
@@ -38,13 +39,19 @@ export default function Diary() {
 
   const need = profile?.fabbisogno_sonno_min ?? RULES.DEFAULT_SLEEP_NEED_MIN;
 
+  const [streakDays, setStreakDays] = useState(0);
+
   const load = useCallback(async () => {
     try {
       setLogs(await fetchSleepLogs(toISODate(addDays(new Date(), -RULES.SLEEP_DEBT_DAYS))));
     } catch {
       // restano i dati già mostrati
     }
-  }, []);
+    if (!profile) return;
+    loadStreak(profile)
+      .then(setStreakDays)
+      .catch(() => {});
+  }, [profile]);
   useFocusEffect(
     useCallback(() => {
       load();
@@ -71,6 +78,12 @@ export default function Diary() {
       setSaving(false);
     }
   };
+
+  const debtDays = new Set(sleepDebt([], need, new Date()).perDay.map((d) => d.data));
+  const logged = logs.filter((l) => debtDays.has(l.data));
+  const avgSleep = logged.length ? logged.reduce((a, l) => a + l.minuti_dormiti, 0) / logged.length : null;
+  const avgEnergy = logged.length ? logged.reduce((a, l) => a + l.energia, 0) / logged.length : null;
+  const energyColor = (e: number) => (e >= 4 ? colors.shift.S : e === 3 ? colors.accent : colors.danger);
 
   const debt = sleepDebt(logs.map((l) => ({ data: l.data, minutes: l.minuti_dormiti })), need, new Date());
 
@@ -120,6 +133,11 @@ export default function Diary() {
         <Button title={it.diary.save} onPress={save} loading={saving} />
       </View>
 
+      <View style={[styles.card, styles.streak]}>
+        <AppText variant="heading">🔥 {it.diary.streak(streakDays)}</AppText>
+        <AppText variant="caption">{it.diary.streakHint}</AppText>
+      </View>
+
       <View style={styles.card}>
         <AppText variant="heading">{it.diary.debtTitle}</AppText>
         <AppText variant="bodyMedium" color={debt.totalMin > 0 ? colors.accent : colors.shift.S}>
@@ -130,6 +148,24 @@ export default function Diary() {
           {it.diary.chartTitle}
         </AppText>
         <SleepBars days={debt.perDay} needMin={need} />
+        {avgSleep !== null ? (
+          <AppText variant="caption">{it.diary.avg(it.onboarding.habits.hours(Math.round(avgSleep / 30) * 30), avgEnergy!.toFixed(1).replace('.', ','))}</AppText>
+        ) : null}
+        <AppText variant="label" secondary>
+          {it.diary.energyTitle}
+        </AppText>
+        <View style={styles.energyWeek}>
+          {debt.perDay.map((d) => {
+            const log = logs.find((l) => l.data === d.data);
+            return (
+              <View key={d.data} style={[styles.energyCell, log && { backgroundColor: energyColor(log.energia) }]}>
+                <AppText variant="label" color={log ? colors.onAccent : colors.textMuted}>
+                  {log ? log.energia : '–'}
+                </AppText>
+              </View>
+            );
+          })}
+        </View>
         <AppText variant="caption">{it.diary.estimateNote}</AppText>
       </View>
     </Screen>
@@ -149,4 +185,14 @@ const useStyles = makeStyles((colors) => ({
     justifyContent: 'center',
   },
   energyOn: { backgroundColor: colors.accent },
+  streak: { gap: 2 },
+  energyWeek: { flexDirection: 'row', gap: 6 },
+  energyCell: {
+    flex: 1,
+    height: 36,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surfaceAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 }));

@@ -19,6 +19,8 @@ import type { NotificationPrefs } from './notificationCard';
 import type { ProfileRow } from './database.types';
 
 const ANDROID_CHANNEL = 'piano';
+/** Notifiche che la riprogrammazione del piano non deve toccare. */
+const KEEP_IDS = new Set(['pisolino']);
 const supported = Platform.OS === 'ios' || Platform.OS === 'android';
 
 if (supported) {
@@ -77,7 +79,11 @@ export function syncNotifications(ctx: PlanContext | null, profile: ProfileRow |
 
 async function doSync(ctx: PlanContext | null, profile: ProfileRow | null) {
   if (!supported) return;
-  await Notifications.cancelAllScheduledNotificationsAsync();
+  // Si cancellano i promemoria del piano, mai la sveglia del pisolino.
+  const pending = await Notifications.getAllScheduledNotificationsAsync();
+  for (const n of pending) {
+    if (!KEEP_IDS.has(n.identifier)) await Notifications.cancelScheduledNotificationAsync(n.identifier);
+  }
   if (!ctx || !profile || notificationPrefs(profile).abilitate !== true) return;
   if (!(await hasPermission())) return;
 

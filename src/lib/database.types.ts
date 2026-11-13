@@ -131,7 +131,7 @@ export type Database = {
       shifts: Table<ShiftRow, Omit<ShiftRow, 'id'> & { id?: string }>;
       sleep_logs: Table<SleepLogRow, Omit<SleepLogRow, 'id' | 'created_at' | 'note'> & { note?: string | null }>;
       plan_checks: Table<PlanCheckRow>;
-      daily_scores: Table<DailyScoreRow>;
+      daily_scores: Table<DailyScoreRow, Omit<DailyScoreRow, 'id'>>;
       subscriptions: Table<SubscriptionRow>;
       events: Table<EventRow, Omit<EventRow, 'id' | 'created_at'>>;
       vigilance_tests: Table<VigilanceTestRow, Omit<VigilanceTestRow, 'id'>>;

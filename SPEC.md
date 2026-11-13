@@ -64,6 +64,15 @@ Reset aiuta chi lavora su turni a rotazione con le notti a dormire abbastanza e 
 - **Debito:** somma di (fabbisogno − ore dormite) degli ultimi 7 giorni, solo valori positivi; numero ("Questa settimana: −6 h 30") e grafico a barre per giorno con la linea del fabbisogno.
 - **Recupero:** nei prossimi giorni di riposo la sveglia si sposta più tardi, al massimo `RECOVERY_MAX_EXTRA_MIN` (90) a notte e non oltre `RECOVERY_LATEST_WAKE` (10:00), finché il debito non è distribuito. Nota: "Il debito non si recupera tutto in una notte: lo distribuiamo sui prossimi riposi."
 
+### Stato di implementazione (Fasi 4–6)
+- **Punteggio di recupero:** anello su Oggi, calcolato quando c'è il diario della notte (pesi in `rules.ts`), salvato in `daily_scores`. **Serie** e **energia della settimana** nel Diario.
+- **Routine post-notte:** checklist (doccia tiepida, luce bassa, telefono lontano, stanza buia e fresca) e audio di rilassamento in italiano di circa 5 minuti (`assets/audio/routine-post-notte.mp3`, voce generata con ElevenLabs, suona anche in modalità silenziosa).
+- **Timer pisolino:** 20 o 90 minuti, sveglia con notifica locale (funziona a telefono bloccato; la riprogrammazione del piano non la cancella).
+- **Guide:** 6 mini-guide e guida ai pasti per tipo di turno (`src/content/guides.ts`).
+- **Report mensile PDF** dal Profilo (`expo-print` + condivisione).
+- **Eliminazione account** dal Profilo (doppia conferma, Edge Function `elimina-account`, cancellazione a cascata di tutti i dati) e pagina web `web/elimina-account.html` per Google Play.
+- **Abbonamenti:** `react-native-iap`, prodotti `it.acanfora.reset.mensile` / `it.acanfora.reset.annuale`, verifica con l'Edge Function `verifica-acquisto` (App Store Server API / Google Play Developer API), notifiche server-to-server con `notifiche-store` (lo stato viene sempre riletto dalle API degli store), stato in `subscriptions`. Il blocco "senza abbonamento non si entra" è controllato da `APP.PAYWALL_ENFORCED` (spento finché i prodotti non sono configurati sugli store).
+
 ### Recupero
 7. **Routine post-notte guidata:** checklist di decompressione (doccia tiepida, luce bassa, telefono lontano, stanza buia e fresca) più un audio di rilassamento di circa 5–10 minuti.
 8. **Timer pisolino strategico:** scegli 20 minuti (pisolino breve) o 90 minuti (ciclo completo), con sveglia.

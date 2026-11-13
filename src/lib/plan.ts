@@ -25,10 +25,11 @@ export async function loadPlanContext(
   profile: ProfileRow,
   around: Date,
   daysAhead: number = RULES.NOTIFICATION_DAYS_AHEAD + 2,
+  daysBack = 2,
 ): Promise<PlanContext> {
   const [types, shifts, pattern] = await Promise.all([
     fetchShiftTypes(),
-    fetchShifts(toISODate(addDays(around, -2)), toISODate(addDays(around, daysAhead))),
+    fetchShifts(toISODate(addDays(around, -daysBack)), toISODate(addDays(around, daysAhead))),
     fetchActivePattern(),
   ]);
   const stored = new Map(shifts.map((s) => [s.data, s.codice]));

@@ -16,6 +16,8 @@ import { listenNotificationTaps } from '@/lib/notifications';
 import { OnboardingDraftProvider } from '@/lib/onboardingDraft';
 import { PlanDataProvider } from '@/lib/planData';
 import { SessionProvider, useSession } from '@/lib/session';
+import { SubscriptionProvider, useSubscription } from '@/lib/subscription';
+import { APP } from '@/constants/app';
 import { useColors } from '@/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -25,6 +27,9 @@ function RootNavigator() {
   const { loading, session, profile } = useSession();
   const signedIn = !!session;
   const onboarded = !!profile?.onboarding_completato_at;
+  const sub = useSubscription();
+  // Con il blocco attivo, senza abbonamento si vede solo il paywall.
+  const unlocked = !APP.PAYWALL_ENFORCED || sub.active;
 
   useEffect(() => {
     if (!loading) SplashScreen.hideAsync().catch(() => {});
@@ -68,7 +73,10 @@ function RootNavigator() {
       <Stack.Protected guard={!onboarded}>
         <Stack.Screen name="(onboarding)" />
       </Stack.Protected>
-      <Stack.Protected guard={signedIn && !loading && onboarded}>
+      <Stack.Protected guard={signedIn && !loading && onboarded && APP.PAYWALL_ENFORCED && !sub.loading && !sub.active}>
+        <Stack.Screen name="abbonamento-richiesto" />
+      </Stack.Protected>
+      <Stack.Protected guard={signedIn && !loading && onboarded && unlocked}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="giorno/[data]" options={{ presentation: 'modal' }} />
         <Stack.Screen name="schema-turni" />
@@ -77,6 +85,9 @@ function RootNavigator() {
         <Stack.Screen name="caffeina" />
         <Stack.Screen name="transizione" />
         <Stack.Screen name="evento" />
+        <Stack.Screen name="routine" />
+        <Stack.Screen name="pisolino" />
+        <Stack.Screen name="guida/[id]" />
         <Stack.Screen name="vigilanza" options={{ gestureEnabled: false }} />
       </Stack.Protected>
     </Stack>
@@ -98,12 +109,14 @@ export default function RootLayout() {
     <SafeAreaProvider>
         <SessionProvider>
           <OnboardingDraftProvider>
+            <SubscriptionProvider>
             <PlanDataProvider>
               <NightModeProvider>
                 <StatusBar style="light" />
                 <RootNavigator />
               </NightModeProvider>
             </PlanDataProvider>
+            </SubscriptionProvider>
           </OnboardingDraftProvider>
         </SessionProvider>
     </SafeAreaProvider>
