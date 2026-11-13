@@ -11,6 +11,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { initCrashReporting, withCrashReporting } from '@/lib/crashReporting';
 import { NightModeProvider } from '@/lib/nightMode';
 import { listenNotificationTaps } from '@/lib/notifications';
 import { OnboardingDraftProvider } from '@/lib/onboardingDraft';
@@ -21,12 +22,15 @@ import { APP } from '@/constants/app';
 import { useColors } from '@/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+initCrashReporting();
 
 function RootNavigator() {
   const colors = useColors();
   const { loading, session, profile } = useSession();
   const signedIn = !!session;
   const onboarded = !!profile?.onboarding_completato_at;
+  // Consenso ai dati sul sonno (GDPR): se revocato, si vede solo la schermata del consenso.
+  const consented = !!profile?.consenso_dati_at;
   const sub = useSubscription();
   // Con il blocco attivo, senza abbonamento si vede solo il paywall.
   const unlocked = !APP.PAYWALL_ENFORCED || sub.active;
@@ -73,10 +77,13 @@ function RootNavigator() {
       <Stack.Protected guard={!onboarded}>
         <Stack.Screen name="(onboarding)" />
       </Stack.Protected>
-      <Stack.Protected guard={signedIn && !loading && onboarded && APP.PAYWALL_ENFORCED && !sub.loading && !sub.active}>
+      <Stack.Protected guard={signedIn && !loading && onboarded && !consented}>
+        <Stack.Screen name="consenso" options={{ gestureEnabled: false }} />
+      </Stack.Protected>
+      <Stack.Protected guard={signedIn && !loading && onboarded && consented && APP.PAYWALL_ENFORCED && !sub.loading && !sub.active}>
         <Stack.Screen name="abbonamento-richiesto" />
       </Stack.Protected>
-      <Stack.Protected guard={signedIn && !loading && onboarded && unlocked}>
+      <Stack.Protected guard={signedIn && !loading && onboarded && consented && unlocked}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="giorno/[data]" options={{ presentation: 'modal' }} />
         <Stack.Screen name="schema-turni" />
@@ -95,7 +102,7 @@ function RootNavigator() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
@@ -122,3 +129,5 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
+
+export default withCrashReporting(RootLayout);

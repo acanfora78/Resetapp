@@ -27,6 +27,9 @@ import { notificationPrefs, openSystemSettings, requestPermission } from '@/lib/
 import { disablePhoneCalendar, enablePhoneCalendar, isPhoneCalendarEnabled } from '@/lib/phoneCalendar';
 import { updateProfile } from '@/lib/profile';
 import { useSession, useUserId } from '@/lib/session';
+import { revokeSleepConsent } from '@/lib/consent';
+import { contactSupport } from '@/lib/support';
+import type { SupportTopic } from '@/lib/support';
 import { planPrefs } from '@/lib/plan';
 import { PLAN_CATEGORIES } from '@/plan/rules';
 import { toClock } from '@/plan/time';
@@ -154,6 +157,29 @@ export default function Profile() {
     }
   };
 
+  const onRevokeConsent = () =>
+    Alert.alert(it.consent.revokeTitle, it.consent.revokeBody, [
+      { text: it.common.cancel, style: 'cancel' },
+      {
+        text: it.consent.revokeConfirm,
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await revokeSleepConsent(userId);
+            await refreshProfile();
+            router.replace('/consenso');
+          } catch (e) {
+            Alert.alert(it.common.error, errorText(e));
+          }
+        },
+      },
+    ]);
+
+  const onSupport = async (topic: SupportTopic) => {
+    const opened = await contactSupport(topic);
+    if (!opened) Alert.alert(it.support.noMailTitle, it.support.noMail(APP.SUPPORT_EMAIL));
+  };
+
   const toggleCategory = async (c: PlanCategory, value: boolean) => {
     const before = categories;
     const next: PlanPrefs = { ...categories, [c]: value };
@@ -266,6 +292,12 @@ export default function Profile() {
 
       <Section title={it.profile.sections.data}>
         <Row icon="document-outline" label={it.report.button} onPress={onReport} />
+        <Row icon="hand-left-outline" label={it.consent.revoke} onPress={onRevokeConsent} />
+      </Section>
+
+      <Section title={it.support.section}>
+        <Row icon="mail-outline" label={it.support.write} onPress={() => onSupport('help')} />
+        <Row icon="bug-outline" label={it.support.bug} onPress={() => onSupport('bug')} />
       </Section>
 
       <Section title={it.profile.sections.info}>

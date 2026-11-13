@@ -400,6 +400,33 @@ export const it = {
     disclaimer: 'Report educativo generato da Reset. Non è un documento medico e non sostituisce il parere di un medico.',
   },
 
+  consent: {
+    revoke: 'Revoca il consenso ai dati sul sonno',
+    revokeTitle: 'Revocare il consenso?',
+    revokeBody:
+      'Cancelliamo diario del sonno, punteggi, caffè registrati e test di vigilanza. Turni e impostazioni restano. Senza consenso il piano non funziona: potrai ridarlo quando vuoi oppure eliminare l’account.',
+    revokeConfirm: 'Revoca e cancella',
+    requiredTitle: 'Serve il tuo consenso',
+    requiredBody:
+      'Hai revocato il consenso al trattamento dei dati sul sonno e sull’energia. Senza questi dati Reset non può costruire il tuo piano. Puoi ridare il consenso o eliminare l’account.',
+    giveAgain: 'Do il consenso e continuo',
+  },
+
+  support: {
+    section: 'Aiuto',
+    write: 'Scrivi al supporto',
+    bug: 'Segnala un problema',
+    noMailTitle: 'Nessuna app email',
+    noMail: (email: string) => `Scrivici a ${email}`,
+    subject: { help: 'Reset – Richiesta di aiuto', bug: 'Reset – Segnalazione di un problema' },
+    bodyStart: {
+      help: 'Ciao, ho bisogno di aiuto con:',
+      bug: 'Ciao, ho trovato un problema.\nCosa stavo facendo:\nCosa è successo:',
+    },
+    mailFooter: (version: string, build: string, os: string) =>
+      `—\nReset ${version} (${build}) · ${os}\nNon scrivere qui dati sulla tua salute: non ci servono.`,
+  },
+
   account: {
     deleteButton: 'Elimina account',
     deleteTitle: 'Eliminare l’account?',

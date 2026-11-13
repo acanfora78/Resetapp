@@ -26,6 +26,7 @@ export default function Index() {
     // Account senza onboarding: se i passi sono già compilati sul telefono si va a "Salva il tuo piano".
     return <Redirect href={isDraftComplete(draft) ? '/salva' : '/lavoro'} />;
   }
+  if (!profile.consenso_dati_at) return <Redirect href="/consenso" />;
   if (APP.PAYWALL_ENFORCED) {
     if (sub.loading) return <View style={{ flex: 1, backgroundColor: colors.background }} />;
     if (!sub.active) return <Redirect href="/abbonamento-richiesto" />;

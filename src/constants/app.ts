@@ -20,6 +20,12 @@ export const APP = {
     annuale: 'it.acanfora.reset.annuale',
   },
 
+  /**
+   * Email del supporto (Profilo → Aiuto).
+   * SEGNAPOSTO: sostituire con l'indirizzo reale prima della pubblicazione.
+   */
+  SUPPORT_EMAIL: 'supporto@example.com',
+
   /** Pagina per gestire o disdire gli abbonamenti. */
   MANAGE_SUBSCRIPTIONS_URL: {
     ios: 'https://apps.apple.com/account/subscriptions',

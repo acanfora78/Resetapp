@@ -194,7 +194,7 @@ L'app non è utilizzabile senza un abbonamento attivo.
 | **Calendario** | Vista mensile dei turni, tocca un giorno per modificarlo, gestione dello schema ciclico |
 | **Diario** | Inserimento rapido del sonno, grafico settimanale, serie |
 | **Guide** | Mini-guide, guida ai pasti in turno |
-| **Profilo** | Orari e tragitto, "Cosa vuoi nel tuo piano" (Pasti, Movimento, Organizzazione, Abitudini), notifiche, modalità notte, report PDF, gestione abbonamento, Ripristina acquisti, Termini, Privacy, disclaimer, **Elimina account** |
+| **Profilo** | Orari e tragitto, "Cosa vuoi nel tuo piano" (Pasti, Movimento, Organizzazione, Abitudini), notifiche, modalità notte, report PDF, **Revoca il consenso ai dati sul sonno**, Aiuto (Scrivi al supporto, Segnala un problema), gestione abbonamento, Ripristina acquisti, Termini, Privacy, disclaimer, **Elimina account** |
 
 ---
 
@@ -236,6 +236,7 @@ Ogni tabella ha `user_id` collegato a `auth.users`, con **Row Level Security att
 | Date | `date-fns` con fuso orario del dispositivo |
 | Build e pubblicazione | EAS Build ed EAS Submit (in cloud) |
 | Test | TestFlight su iPhone. Android su Chromebook o emulatore |
+| Errori | `@sentry/react-native`, attivo solo se c'è `EXPO_PUBLIC_SENTRY_DSN`; niente dati personali né sul sonno (`src/lib/crashReporting.ts`) |
 
 ### Ambiente di lavoro
 Lo sviluppatore usa un **Chromebook** e un **iPhone 17 Pro**, con Claude Code nel browser. Non c'è un Mac. Tutto passa da GitHub, EAS Build in cloud e TestFlight. Funzioni come Accedi con Apple e gli acquisti in-app richiedono una **development build** (non funzionano in Expo Go).
@@ -253,7 +254,9 @@ Lo sviluppatore usa un **Chromebook** e un **iPhone 17 Pro**, con Claude Code ne
 - [ ] Accedi con Apple disponibile, dato che c'è anche Google.
 - [ ] Paywall con prezzo, durata, rinnovo automatico, come disdire, link a Termini e Privacy, pulsante "Ripristina acquisti".
 - [ ] Privacy policy e Termini di servizio pubblicati online.
-- [ ] Dati sul sonno trattati come dati sensibili (GDPR): consenso esplicito all'onboarding e revocabile.
+- [x] Dati sul sonno trattati come dati sensibili (GDPR): consenso esplicito all'onboarding e revocabile (Profilo → I tuoi dati). La revoca cancella diario, punteggi, caffè e test di vigilanza e porta alla schermata "Serve il tuo consenso" (ridare il consenso o eliminare l'account).
+- [ ] Contatto del supporto nell'app (fatto, con email segnaposto `APP.SUPPORT_EMAIL`).
+- [ ] Bozze di Privacy e Termini in `web/privacy.html` e `web/termini.html`, testi degli store in `docs/TESTI-STORE.md`: da revisionare e pubblicare.
 - [ ] Disclaimer visibile: contenuti educativi, non sostituiscono il parere medico. Nessun consiglio su farmaci, melatonina o integratori.
 - [ ] Etichette privacy su App Store e modulo "Sicurezza dei dati" su Play Console.
 - [ ] Regole del piano validate da un esperto prima del lancio.
