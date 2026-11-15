@@ -7,7 +7,8 @@ const b64url = (data: ArrayBuffer | Uint8Array | string) => {
 };
 
 function pemToDer(pem: string): ArrayBuffer {
-  const body = pem.replace(/-----[^-]+-----/g, '').replace(/\s+/g, '');
+  // Accetta la chiave incollata su più righe, su una riga sola o con "\n" letterali.
+  const body = pem.replace(/\\n/g, '').replace(/-----[^-]+-----/g, '').replace(/\s+/g, '');
   const raw = atob(body);
   const out = new Uint8Array(raw.length);
   for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
