@@ -85,6 +85,8 @@ async function verify(p: Purchase): Promise<boolean> {
 export function listenPurchases(onResult: (ok: boolean, error?: unknown) => void): () => void {
   if (!supported) return () => {};
   const ok = purchaseUpdatedListener(async (purchase) => {
+    // Solo i prodotti di "Reset Premium" (es. si ignora il vecchio prodotto creato per errore).
+    if (!SKUS.includes(purchase.productId)) return;
     try {
       const active = await verify(purchase);
       await finishTransaction({ purchase, isConsumable: false });

@@ -19,10 +19,20 @@ const env = (k: string) => {
   return v;
 };
 
+/**
+ * ID dei prodotti in abbonamento (gruppo "Reset Premium"), uguali a APP.IAP_PRODUCTS
+ * nell'app. Non sono segreti. Il vecchio "it.acanfora.reset.mensile", creato per
+ * errore, NON va usato: viene rifiutato come prodotto sconosciuto.
+ */
+export const PRODOTTI: Record<string, Prodotto> = {
+  'it.acanfora.reset.premium.mensile': 'mensile',
+  'it.acanfora.reset.premium.annuale': 'annuale',
+};
+
 export function prodottoDa(productId: string): Prodotto {
-  if (productId === env('IAP_PRODUCT_MONTHLY')) return 'mensile';
-  if (productId === env('IAP_PRODUCT_YEARLY')) return 'annuale';
-  throw new Error(`Prodotto sconosciuto: ${productId}`);
+  const p = PRODOTTI[productId];
+  if (!p) throw new Error(`Prodotto sconosciuto: ${productId}`);
+  return p;
 }
 
 // --- Apple: App Store Server API ------------------------------------------------

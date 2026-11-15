@@ -14,10 +14,14 @@ export const APP = {
    */
   PAYWALL_ENFORCED: false,
 
-  /** Identificativi dei prodotti in abbonamento (uguali su App Store e Google Play). */
+  /**
+   * Identificativi dei prodotti in abbonamento, gruppo "Reset Premium" (uguali su
+   * App Store e Google Play e in supabase/functions/_shared/stores.ts).
+   * Il vecchio "it.acanfora.reset.mensile", creato per errore, NON va usato.
+   */
   IAP_PRODUCTS: {
-    mensile: 'it.acanfora.reset.mensile',
-    annuale: 'it.acanfora.reset.annuale',
+    mensile: 'it.acanfora.reset.premium.mensile',
+    annuale: 'it.acanfora.reset.premium.annuale',
   },
 
   /**
