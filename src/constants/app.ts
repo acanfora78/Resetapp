@@ -15,6 +15,12 @@ export const APP = {
   PAYWALL_ENFORCED: false,
 
   /**
+   * Acquisti attivi (prodotti creati sugli store). Con il blocco spento si può
+   * comprare dal paywall o da Profilo → Abbonati, ma anche saltare ("Più tardi").
+   */
+  PURCHASES_ENABLED: true,
+
+  /**
    * Identificativi dei prodotti in abbonamento, gruppo "Reset Premium" (uguali su
    * App Store e Google Play e in supabase/functions/_shared/stores.ts).
    * Il vecchio "it.acanfora.reset.mensile", creato per errore, NON va usato.

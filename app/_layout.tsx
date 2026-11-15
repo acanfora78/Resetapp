@@ -96,6 +96,7 @@ function RootNavigator() {
         <Stack.Screen name="pisolino" />
         <Stack.Screen name="guida/[id]" />
         <Stack.Screen name="vigilanza" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="abbonati" options={{ presentation: 'modal' }} />
       </Stack.Protected>
     </Stack>
     </ThemeProvider>

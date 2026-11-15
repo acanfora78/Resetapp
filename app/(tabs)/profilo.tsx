@@ -94,7 +94,7 @@ export default function Profile() {
   const sub = useSubscription();
 
   const onRestore = async () => {
-    if (!APP.PAYWALL_ENFORCED) return Alert.alert(it.onboarding.paywall.restore, it.onboarding.paywall.restoreSoon);
+    if (!APP.PURCHASES_ENABLED) return Alert.alert(it.onboarding.paywall.restore, it.onboarding.paywall.restoreSoon);
     try {
       const ok = await restore();
       await sub.refresh();
@@ -282,6 +282,9 @@ export default function Profile() {
               : it.profile.subscriptionNone}
           </AppText>
         </View>
+        {!sub.active ? (
+          <Row icon="star-outline" label={it.onboarding.paywall.profileRow} onPress={() => router.push('/abbonati')} />
+        ) : null}
         <Row
           icon="card-outline"
           label={it.profile.manageSubscription}

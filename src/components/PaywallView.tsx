@@ -20,7 +20,7 @@ import { fonts, makeStyles, radius, spacing, useColors } from '@/theme';
 const isUserCancel = (e: unknown) => /cancel/i.test(String((e as { code?: string })?.code ?? (e as Error)?.message ?? ''));
 
 /**
- * Paywall: piani, acquisto, "Ripristina acquisti". Con APP.PAYWALL_ENFORCED spento,
+ * Paywall: piani, acquisto, "Ripristina acquisti". Con APP.PURCHASES_ENABLED spento,
  * "Continua" prosegue senza acquisto (prodotti non ancora configurati sugli store).
  */
 export function PaywallView({ step, onUnlocked }: { step?: number; onUnlocked: () => Promise<void> }) {
@@ -33,7 +33,7 @@ export function PaywallView({ step, onUnlocked }: { step?: number; onUnlocked: (
   const p = it.onboarding.paywall;
 
   useEffect(() => {
-    if (!APP.PAYWALL_ENFORCED) return;
+    if (!APP.PURCHASES_ENABLED) return;
     loadPrices().then(setPrices);
     return listenPurchases(async (ok, error) => {
       if (ok) {
@@ -55,7 +55,7 @@ export function PaywallView({ step, onUnlocked }: { step?: number; onUnlocked: (
   const finish = async () => {
     setSaving(true);
     try {
-      if (!APP.PAYWALL_ENFORCED) {
+      if (!APP.PURCHASES_ENABLED) {
         await onUnlocked();
         return;
       }
@@ -67,7 +67,7 @@ export function PaywallView({ step, onUnlocked }: { step?: number; onUnlocked: (
   };
 
   const onRestore = async () => {
-    if (!APP.PAYWALL_ENFORCED) return Alert.alert(p.restore, p.restoreSoon);
+    if (!APP.PURCHASES_ENABLED) return Alert.alert(p.restore, p.restoreSoon);
     try {
       if (await restore()) {
         await sub.refresh();
@@ -79,7 +79,17 @@ export function PaywallView({ step, onUnlocked }: { step?: number; onUnlocked: (
   };
 
   return (
-    <Screen footer={<Button title={it.common.continue} onPress={finish} loading={saving} />}>
+    <Screen
+      footer={
+        <View style={{ gap: spacing.sm }}>
+          <Button title={APP.PURCHASES_ENABLED ? p.subscribe : it.common.continue} onPress={finish} loading={saving} />
+          {/* Senza blocco si può andare avanti anche senza comprare. */}
+          {APP.PURCHASES_ENABLED && !APP.PAYWALL_ENFORCED ? (
+            <Button variant="ghost" title={p.later} onPress={() => onUnlocked()} disabled={saving} />
+          ) : null}
+        </View>
+      }
+    >
       {step ? <StepHeader step={step} title={p.title} /> : <AppText variant="title">{p.title}</AppText>}
 
       <View style={styles.benefits}>
