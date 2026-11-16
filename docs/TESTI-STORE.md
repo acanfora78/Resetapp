@@ -59,8 +59,8 @@ I dati sul sonno li trattiamo solo con il tuo consenso, che puoi revocare quando
 ABBONAMENTO
 Prova gratuita di 3 giorni per i nuovi abbonati, poi 4,99 € al mese o 44,99 € all'anno. Il pagamento viene addebitato sul tuo account Apple alla fine della prova. L'abbonamento si rinnova automaticamente salvo disdetta almeno 24 ore prima della fine della prova o del periodo in corso; lo gestisci e lo disdici dalle impostazioni dell'account App Store. Se disdici durante la prova non paghi nulla.
 
-Termini di servizio: [URL TERMINI]
-Informativa privacy: [URL PRIVACY]
+Termini di servizio: https://resetappbusiness.netlify.app/termini.html
+Informativa privacy: https://resetappbusiness.netlify.app/privacy.html
 
 Reset offre contenuti educativi su abitudini e organizzazione. Non è un dispositivo medico e non sostituisce il parere di un medico.
 
@@ -71,9 +71,9 @@ turni,turnista,notte,sonno,infermiere,smonto,pisolino,caffeina,ritmo,stanchezza,
 Prima versione di Reset: il piano giornaliero per chi lavora su turni.
 
 ### URL
-- URL di supporto: [URL PAGINA SUPPORTO o pagina con l'email]
-- URL marketing (facoltativo): [URL SITO]
-- URL informativa privacy: [URL PRIVACY]
+- URL di supporto: https://resetappbusiness.netlify.app
+- URL marketing (facoltativo): https://resetappbusiness.netlify.app
+- URL informativa privacy: https://resetappbusiness.netlify.app/privacy.html
 
 ### Informazioni per la revisione Apple
 - **Account demo:** [EMAIL DEMO] / [PASSWORD DEMO]. Crea un account di prova con onboarding già fatto, così il revisore vede subito l'app.
@@ -118,11 +118,11 @@ Usa la stessa descrizione dell'App Store e sostituisci il paragrafo ABBONAMENTO 
 
 ### Contatti
 - Email: morganacanfora5@gmail.com (obbligatoria)
-- Sito: [URL SITO] (facoltativo)
-- Informativa privacy: [URL PRIVACY]
+- Sito: https://resetappbusiness.netlify.app (facoltativo)
+- Informativa privacy: https://resetappbusiness.netlify.app/privacy.html
 
 ### Eliminazione dell'account (obbligatoria)
-- URL: [URL]/elimina-account.html
+- URL: https://resetappbusiness.netlify.app/elimina-account.html
 - Si può chiedere di cancellare solo alcuni dati? **Sì.** Revocando il consenso si cancellano diario del sonno, punteggi, caffè e test di vigilanza.
 
 ### Sicurezza dei dati (modulo "Data safety")

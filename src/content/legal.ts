@@ -1,8 +1,12 @@
 /**
- * Link a Termini e Privacy.
- * SEGNAPOSTO: sostituire con gli indirizzi reali prima della pubblicazione.
+ * Pagine web pubblicate su Netlify (sorgenti in web/).
+ * Per aggiornarle: ricaricare la cartella web/ su Netlify (progetto resetappbusiness).
  */
+const SITE = 'https://resetappbusiness.netlify.app';
+
 export const LEGAL_LINKS = {
-  terms: 'https://example.com/reset/termini',
-  privacy: 'https://example.com/reset/privacy',
+  site: SITE,
+  terms: `${SITE}/termini.html`,
+  privacy: `${SITE}/privacy.html`,
+  deleteAccount: `${SITE}/elimina-account.html`,
 } as const;
