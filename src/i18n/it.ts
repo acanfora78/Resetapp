@@ -172,7 +172,12 @@ export const it = {
       yearlyBadge: 'Risparmi 25%',
       monthly: 'Mensile',
       monthlyPrice: '4,99 € al mese',
-      renewal: 'Rinnovo automatico, disdici quando vuoi dalle impostazioni dell’App Store.',
+      renewal:
+        'Rinnovo automatico allo stesso prezzo, salvo disdetta almeno 24 ore prima della scadenza. Disdici quando vuoi dalle impostazioni dell’App Store.',
+      startTrial: (days: number) => `Prova gratis per ${days} giorni`,
+      trialThen: (days: number, price: string) => `${days} giorni gratis, poi ${price}`,
+      renewalTrial: (days: number, price: string) =>
+        `Prova gratuita di ${days} giorni, poi ${price}. L’abbonamento parte e si rinnova automaticamente se non lo disdici almeno 24 ore prima della fine della prova o del periodo in corso, dalle impostazioni dell’App Store. Se disdici durante la prova non paghi nulla.`,
       subscribe: 'Abbonati',
       later: 'Più tardi',
       profileRow: 'Abbonati a Reset Premium',

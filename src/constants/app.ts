@@ -8,11 +8,10 @@ export const APP = {
   NOTIF_CARD_MAX_SNOOZES: 3,
 
   /**
-   * Blocco "senza abbonamento non si entra". Spento finché i prodotti non sono
-   * configurati su App Store Connect e Google Play: altrimenti su TestFlight
-   * l'app resterebbe bloccata.
+   * Blocco "senza abbonamento non si entra" (anche la prova gratuita conta come
+   * abbonamento attivo). Acceso dalla versione inviata ad App Store.
    */
-  PAYWALL_ENFORCED: false,
+  PAYWALL_ENFORCED: true,
 
   /**
    * Acquisti attivi (prodotti creati sugli store). Con il blocco spento si può
@@ -31,10 +30,9 @@ export const APP = {
   },
 
   /**
-   * Email del supporto (Profilo → Aiuto).
-   * SEGNAPOSTO: sostituire con l'indirizzo reale prima della pubblicazione.
+   * Email del supporto e della privacy (Profilo → Aiuto, pagine web, store).
    */
-  SUPPORT_EMAIL: 'supporto@example.com',
+  SUPPORT_EMAIL: 'morganacanfora5@gmail.com',
 
   /** Pagina per gestire o disdire gli abbonamenti. */
   MANAGE_SUBSCRIPTIONS_URL: {

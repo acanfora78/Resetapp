@@ -10,6 +10,7 @@ import {
   finishTransaction,
   getAvailablePurchases,
   initConnection,
+  isEligibleForIntroOfferIOS,
   purchaseErrorListener,
   purchaseUpdatedListener,
   requestPurchase,
@@ -18,6 +19,7 @@ import type { Purchase } from 'react-native-iap';
 
 import { APP } from '@/constants/app';
 
+import { findFreeTrial, freeTrialDays } from './iapOffers';
 import { supabase } from './supabase';
 
 export type Plan = keyof typeof APP.IAP_PRODUCTS;
@@ -34,18 +36,51 @@ async function ensureConnected() {
   if (!connected) throw new Error('Store non raggiungibile.');
 }
 
-/** Prezzi localizzati dallo store (null se non disponibili). */
-export async function loadPrices(): Promise<Record<Plan, string | null>> {
-  const out: Record<Plan, string | null> = { mensile: null, annuale: null };
+type StoreProduct = {
+  id?: string;
+  productId?: string;
+  displayPrice?: string;
+  subscriptionGroupIdIOS?: string | null;
+  subscriptionOffers?: {
+    type?: string | null;
+    paymentMode?: string | null;
+    period?: { unit?: string | null; value?: number | null } | null;
+    periodCount?: number | null;
+    offerTokenAndroid?: string | null;
+  }[];
+};
+
+const productFor = (sku: string) =>
+  (products as StoreProduct[]).find((x) => x.id === sku || x.productId === sku);
+
+export interface StoreInfo {
+  /** Prezzi localizzati (null se lo store non risponde: restano quelli scritti nell'app). */
+  prices: Record<Plan, string | null>;
+  /** Giorni di prova gratuita, solo se lo store la propone e l'utente ne ha diritto. */
+  trialDays: Record<Plan, number | null>;
+}
+
+/** Prezzi e prova gratuita dallo store. */
+export async function loadStoreInfo(): Promise<StoreInfo> {
+  const out: StoreInfo = { prices: { mensile: null, annuale: null }, trialDays: { mensile: null, annuale: null } };
   try {
     await ensureConnected();
     products = ((await fetchProducts({ skus: SKUS, type: 'subs' })) ?? []) as unknown as Record<string, unknown>[];
-    for (const [plan, sku] of Object.entries(APP.IAP_PRODUCTS) as [Plan, string][]) {
-      const p = products.find((x) => x.id === sku || x.productId === sku);
-      out[plan] = typeof p?.displayPrice === 'string' ? p.displayPrice : null;
-    }
   } catch {
-    // restano i prezzi di riferimento scritti nell'app
+    return out;
+  }
+  for (const [plan, sku] of Object.entries(APP.IAP_PRODUCTS) as [Plan, string][]) {
+    const p = productFor(sku);
+    out.prices[plan] = typeof p?.displayPrice === 'string' ? p.displayPrice : null;
+    const days = freeTrialDays(findFreeTrial(p?.subscriptionOffers));
+    if (!days) continue;
+    // Su iOS la prova spetta solo a chi non l'ha già usata nel gruppo: si chiede ad Apple.
+    // Su Android Google Play restituisce l'offerta solo a chi ne ha diritto.
+    let eligible = Platform.OS === 'android';
+    if (Platform.OS === 'ios' && p?.subscriptionGroupIdIOS) {
+      eligible = await isEligibleForIntroOfferIOS(p.subscriptionGroupIdIOS).catch(() => false);
+    }
+    if (eligible) out.trialDays[plan] = days;
   }
   return out;
 }
@@ -54,10 +89,9 @@ export async function loadPrices(): Promise<Record<Plan, string | null>> {
 export async function buy(plan: Plan) {
   await ensureConnected();
   const sku = APP.IAP_PRODUCTS[plan];
-  const product = products.find((x) => x.id === sku || x.productId === sku) as
-    | { subscriptionOffers?: { offerTokenAndroid?: string | null }[] }
-    | undefined;
-  const offerToken = product?.subscriptionOffers?.[0]?.offerTokenAndroid ?? undefined;
+  const offers = productFor(sku)?.subscriptionOffers ?? [];
+  // Android: si usa l'offerta con la prova gratuita, se c'è; altrimenti il piano base.
+  const offerToken = (findFreeTrial(offers) ?? offers[0])?.offerTokenAndroid ?? undefined;
   await requestPurchase({
     type: 'subs',
     request: {

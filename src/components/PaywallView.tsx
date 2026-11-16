@@ -11,7 +11,7 @@ import { LEGAL_LINKS } from '@/content/legal';
 import it from '@/i18n/it';
 import { errorText } from '@/lib/errors';
 import { APP } from '@/constants/app';
-import { buy, listenPurchases, loadPrices, restore } from '@/lib/iap';
+import { buy, listenPurchases, loadStoreInfo, restore } from '@/lib/iap';
 import type { Plan } from '@/lib/iap';
 import { useSubscription } from '@/lib/subscription';
 import { fonts, makeStyles, radius, spacing, useColors } from '@/theme';
@@ -30,11 +30,15 @@ export function PaywallView({ step, onUnlocked }: { step?: number; onUnlocked: (
   const [plan, setPlan] = useState<Plan>('annuale');
   const [saving, setSaving] = useState(false);
   const [prices, setPrices] = useState<Record<Plan, string | null>>({ mensile: null, annuale: null });
+  const [trial, setTrial] = useState<Record<Plan, number | null>>({ mensile: null, annuale: null });
   const p = it.onboarding.paywall;
 
   useEffect(() => {
     if (!APP.PURCHASES_ENABLED) return;
-    loadPrices().then(setPrices);
+    loadStoreInfo().then((info) => {
+      setPrices(info.prices);
+      setTrial(info.trialDays);
+    });
     return listenPurchases(async (ok, error) => {
       if (ok) {
         await sub.refresh();
@@ -66,6 +70,11 @@ export function PaywallView({ step, onUnlocked }: { step?: number; onUnlocked: (
     }
   };
 
+  const yearlyPrice = prices.annuale ? p.perYear(prices.annuale) : p.yearlyPrice;
+  const monthlyPrice = prices.mensile ? p.perMonth(prices.mensile) : p.monthlyPrice;
+  const selectedPrice = plan === 'annuale' ? yearlyPrice : monthlyPrice;
+  const selectedTrial = trial[plan];
+
   const onRestore = async () => {
     if (!APP.PURCHASES_ENABLED) return Alert.alert(p.restore, p.restoreSoon);
     try {
@@ -82,7 +91,11 @@ export function PaywallView({ step, onUnlocked }: { step?: number; onUnlocked: (
     <Screen
       footer={
         <View style={{ gap: spacing.sm }}>
-          <Button title={APP.PURCHASES_ENABLED ? p.subscribe : it.common.continue} onPress={finish} loading={saving} />
+          <Button
+            title={!APP.PURCHASES_ENABLED ? it.common.continue : selectedTrial ? p.startTrial(selectedTrial) : p.subscribe}
+            onPress={finish}
+            loading={saving}
+          />
           {/* Senza blocco si può andare avanti anche senza comprare. */}
           {APP.PURCHASES_ENABLED && !APP.PAYWALL_ENFORCED ? (
             <Button variant="ghost" title={p.later} onPress={() => onUnlocked()} disabled={saving} />
@@ -107,15 +120,20 @@ export function PaywallView({ step, onUnlocked }: { step?: number; onUnlocked: (
         selected={plan === 'annuale'}
         onPress={() => choose('annuale')}
         title={p.yearly}
-        price={prices.annuale ? p.perYear(prices.annuale) : p.yearlyPrice}
+        price={trial.annuale ? p.trialThen(trial.annuale, yearlyPrice) : yearlyPrice}
         detail={p.yearlyMonthly}
         badge={p.yearlyBadge}
       />
-      <PlanCard selected={plan === 'mensile'} onPress={() => choose('mensile')} title={p.monthly} price={prices.mensile ? p.perMonth(prices.mensile) : p.monthlyPrice} />
+      <PlanCard
+        selected={plan === 'mensile'}
+        onPress={() => choose('mensile')}
+        title={p.monthly}
+        price={trial.mensile ? p.trialThen(trial.mensile, monthlyPrice) : monthlyPrice}
+      />
 
       <View style={styles.legal}>
         <AppText variant="caption" center>
-          {p.renewal}
+          {selectedTrial ? p.renewalTrial(selectedTrial, selectedPrice) : p.renewal}
         </AppText>
         <View style={styles.legalLinks}>
           <AppText variant="caption" color={colors.textSecondary} onPress={onRestore}>

@@ -18,7 +18,7 @@ Promessa: *ogni giorno l'app ti dice cosa fare in base al tuo turno.*
 - **Target:** turnisti di 25–50 anni (sanità, industria, logistica, sicurezza, trasporti, forze dell'ordine).
 - **Piattaforme:** iOS e Android. Solo italiano, con tutti i testi in un unico file per aggiungere altre lingue in futuro.
 - **Account:** obbligatorio, con email, Accedi con Apple o Google. I dati sono salvati online su Supabase (UE).
-- **Modello:** abbonamento senza prova, 4,99 €/mese o 44,99 €/anno.
+- **Modello:** abbonamento con prova gratuita di 3 giorni, poi 4,99 €/mese o 44,99 €/anno.
 - **Posizionamento:** educativo, **non medico**. Niente consigli su farmaci, melatonina o integratori. Le stime riportano la nota "Stima educativa, non sostituisce il parere medico".
 - **Tono:** diretto ed empatico, da collega.
 

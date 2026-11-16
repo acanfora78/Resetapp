@@ -15,7 +15,7 @@ Reset aiuta chi lavora su turni a rotazione con le notti a dormire abbastanza e 
 | Piattaforme | iOS (App Store) e Android (Google Play) |
 | Lingua | Solo italiano (testi centralizzati in un file, per poter aggiungere l'inglese in futuro) |
 | Account | Obbligatorio, dati salvati online |
-| Modello | Abbonamento senza prova: 4,99 €/mese o 44,99 €/anno |
+| Modello | Abbonamento con prova gratuita di 3 giorni (offerta introduttiva sugli store), poi 4,99 €/mese o 44,99 €/anno con rinnovo automatico |
 | Posizionamento | Educativo su abitudini e organizzazione, **non medico** |
 | Tono dei testi | Diretto, empatico, da collega. Frasi brevi. Niente toni motivazionali da guru, niente gergo medico |
 
@@ -183,7 +183,7 @@ La registrazione arriva dopo l'anteprima del piano. Tutti i dati inseriti prima 
 6. Caricamento "Sto creando il tuo piano…" (2–3 s)
 7. **Anteprima del piano di domani** (timeline con icone)
 8. **Salva il tuo piano:** registrazione (email + password, Accedi con Apple, Accedi con Google), nome facoltativo, consenso esplicito al trattamento dei dati sul sonno (GDPR) e accettazione di Termini e Privacy
-9. **Paywall:** mensile 4,99 € / annuale 44,99 € (preselezionato, "Risparmi 25%", 3,75 €/mese)
+9. **Paywall:** mensile 4,99 € / annuale 44,99 € (preselezionato, "Risparmi 25%", 3,75 €/mese). Se lo store propone la prova gratuita e l'utente ne ha diritto: "3 giorni gratis, poi …", pulsante "Prova gratis per 3 giorni" e testo con rinnovo automatico e disdetta (`src/lib/iapOffers.ts`).
 
 L'app non è utilizzabile senza un abbonamento attivo.
 
@@ -255,7 +255,8 @@ Lo sviluppatore usa un **Chromebook** e un **iPhone 17 Pro**, con Claude Code ne
 - [ ] Paywall con prezzo, durata, rinnovo automatico, come disdire, link a Termini e Privacy, pulsante "Ripristina acquisti".
 - [ ] Privacy policy e Termini di servizio pubblicati online.
 - [x] Dati sul sonno trattati come dati sensibili (GDPR): consenso esplicito all'onboarding e revocabile (Profilo → I tuoi dati). La revoca cancella diario, punteggi, caffè e test di vigilanza e porta alla schermata "Serve il tuo consenso" (ridare il consenso o eliminare l'account).
-- [ ] Contatto del supporto nell'app (fatto, con email segnaposto `APP.SUPPORT_EMAIL`).
+- [x] Contatto del supporto nell'app (`APP.SUPPORT_EMAIL`) e pagina di supporto `web/index.html`.
+- Sentry è nel codice ma spento (manca `EXPO_PUBLIC_SENTRY_DSN`): se si attiva, aggiungerlo all'informativa privacy e alle etichette privacy degli store.
 - [ ] Bozze di Privacy e Termini in `web/privacy.html` e `web/termini.html`, testi degli store in `docs/TESTI-STORE.md`: da revisionare e pubblicare.
 - [ ] Disclaimer visibile: contenuti educativi, non sostituiscono il parere medico. Nessun consiglio su farmaci, melatonina o integratori.
 - [ ] Etichette privacy su App Store e modulo "Sicurezza dei dati" su Play Console.

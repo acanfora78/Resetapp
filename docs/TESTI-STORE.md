@@ -57,7 +57,7 @@ I TUOI DATI
 I dati sul sonno li trattiamo solo con il tuo consenso, che puoi revocare quando vuoi. Niente pubblicità, niente vendita di dati. Puoi eliminare l'account dall'app.
 
 ABBONAMENTO
-Reset si usa con un abbonamento: 4,99 € al mese o 44,99 € all'anno. Il pagamento viene addebitato sul tuo account Apple. L'abbonamento si rinnova automaticamente salvo disdetta almeno 24 ore prima della scadenza; lo gestisci e lo disdici dalle impostazioni dell'account App Store.
+Prova gratuita di 3 giorni per i nuovi abbonati, poi 4,99 € al mese o 44,99 € all'anno. Il pagamento viene addebitato sul tuo account Apple alla fine della prova. L'abbonamento si rinnova automaticamente salvo disdetta almeno 24 ore prima della fine della prova o del periodo in corso; lo gestisci e lo disdici dalle impostazioni dell'account App Store. Se disdici durante la prova non paghi nulla.
 
 Termini di servizio: [URL TERMINI]
 Informativa privacy: [URL PRIVACY]
@@ -94,7 +94,6 @@ Rispondi **No / Nessuno** a tutte le domande. Su "Contenuti medici o informazion
 | Acquisti → Cronologia acquisti | Sì | Sì | No | Funzionalità dell'app |
 | Identificativi → ID utente | Sì | Sì | No | Funzionalità dell'app |
 | Contenuti utente → Altri contenuti dell'utente | Sì (turni, eventi, note) | Sì | No | Funzionalità dell'app |
-| Diagnostica → Dati sugli arresti anomali | Sì (solo se Sentry è attivo) | No | No | Funzionalità dell'app |
 
 **Tracciamento:** No. Nessun SDK pubblicitario e nessuna richiesta ATT.
 
@@ -112,13 +111,13 @@ Il piano di sonno, luce e caffeina per chi lavora su turni e fa le notti. (73)
 Usa la stessa descrizione dell'App Store e sostituisci il paragrafo ABBONAMENTO con questo:
 
 > ABBONAMENTO
-> Reset si usa con un abbonamento: 4,99 € al mese o 44,99 € all'anno, addebitato sul tuo account Google Play. L'abbonamento si rinnova automaticamente salvo disdetta; lo gestisci e lo disdici da Google Play → Pagamenti e abbonamenti.
+> Prova gratuita di 3 giorni per i nuovi abbonati, poi 4,99 € al mese o 44,99 € all'anno, addebitato sul tuo account Google Play. L'abbonamento si rinnova automaticamente salvo disdetta; lo gestisci e lo disdici da Google Play → Pagamenti e abbonamenti.
 
 ### Categoria
 **Salute e fitness**. Tag: Sonno, Benessere.
 
 ### Contatti
-- Email: [EMAIL SUPPORTO] (obbligatoria)
+- Email: morganacanfora5@gmail.com (obbligatoria)
 - Sito: [URL SITO] (facoltativo)
 - Informativa privacy: [URL PRIVACY]
 
@@ -139,7 +138,6 @@ Usa la stessa descrizione dell'App Store e sostituisci il paragrafo ABBONAMENTO 
 | Salute e fitness → Informazioni sulla salute | Sì | No* | Funzionalità dell'app |
 | Informazioni finanziarie → Cronologia acquisti | Sì | No | Funzionalità dell'app |
 | Attività nelle app → Altri contenuti generati dagli utenti | Sì | Sì | Funzionalità dell'app |
-| Informazioni e prestazioni dell'app → Log degli arresti anomali, Diagnostica | Sì (se Sentry è attivo) | No | Analisi (stabilità) |
 
 \* Il diario del sonno è facoltativo, ma per usare l'app serve il consenso ai dati sul sonno.
 
